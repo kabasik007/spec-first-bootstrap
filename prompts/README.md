@@ -8,7 +8,15 @@ Default setup prompt:
 ```text
 Use https://github.com/potapenko/spec-first-bootstrap as the reference and set up this project for spec-first development.
 
-Read the bootstrap repository first. Add or adapt the needed AGENTS.md, the docs/specs README and template layer, and prompts. Add optional QA only if it fits this project. If this is an existing project, do brownfield discovery and create project-specific first-pass specs before changing implementation code.
+Read the bootstrap repository first. Add or adapt the needed AGENTS.md, the docs/specs README and template layer, and prompts. If this is an existing project, do brownfield discovery and create project-specific first-pass specs before changing implementation code.
+```
+
+Web UI with browser QA:
+
+```text
+Use https://github.com/potapenko/spec-first-bootstrap as the reference and set up this web UI project for spec-first development with the optional browser-QA layer.
+
+Read the bootstrap repository first. Add or adapt the needed AGENTS.md, the docs/specs README and template layer, prompts, and qa/web files. Include the qa/web/AGENTS.snippet.md routing block in AGENTS.md so browser-QA instructions load automatically. If this is an existing project, do brownfield discovery and create project-specific first-pass specs before changing implementation code.
 ```
 
 The files below are follow-up prompts for specific situations.
