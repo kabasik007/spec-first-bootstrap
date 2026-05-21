@@ -3,7 +3,7 @@
 Use these prompts as a starting point when you point Codex or Claude Code at
 this bootstrap repository.
 
-Default setup prompt:
+Step 1: set up spec-first development
 
 ```text
 Use https://github.com/potapenko/spec-first-bootstrap as the reference and set up this project for spec-first development.
@@ -11,12 +11,12 @@ Use https://github.com/potapenko/spec-first-bootstrap as the reference and set u
 Read the bootstrap repository first. Add or adapt the needed AGENTS.md, the docs/specs README and template layer, and prompts. If this is an existing project, do brownfield discovery and create project-specific first-pass specs before changing implementation code.
 ```
 
-Web UI with browser QA:
+Optional step 2: add browser QA for a web UI project
 
 ```text
-Use https://github.com/potapenko/spec-first-bootstrap as the reference and set up this web UI project for spec-first development with the optional browser-QA layer.
+Use https://github.com/potapenko/spec-first-bootstrap as the reference and add the optional browser-QA layer to this web UI project.
 
-Read the bootstrap repository first. Add or adapt the needed AGENTS.md, the docs/specs README and template layer, prompts, and qa/web files. Include the qa/web/AGENTS.snippet.md routing block in AGENTS.md so browser-QA instructions load automatically. If this is an existing project, do brownfield discovery and create project-specific first-pass specs before changing implementation code.
+Assume the spec-first bootstrap from step 1 is already installed. Read qa/README.md, qa/web/README.md, and qa/web/AGENTS.snippet.md from the bootstrap repository. Add or adapt the qa/web files for this project, and merge the qa/web/AGENTS.snippet.md routing block into the project's AGENTS.md so browser-QA instructions load automatically. Keep browser QA optional and do not change product code.
 ```
 
 The files below are follow-up prompts for specific situations.

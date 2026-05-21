@@ -4,9 +4,15 @@ Use this bootstrap repository as the reference:
 
 https://github.com/potapenko/spec-first-bootstrap
 
-Set up the optional browser-QA layer for this project.
+Assume the spec-first bootstrap is already installed in this project.
 
-Use the optional starter pack under `qa/web/` as the reference.
+Add the optional browser-QA layer for this project.
+
+Read these files from the bootstrap repository first:
+
+- `qa/README.md`
+- `qa/web/README.md`
+- `qa/web/AGENTS.snippet.md`
 
 Add or adapt:
 
@@ -18,5 +24,7 @@ Add or adapt:
 6. the `qa/web/AGENTS.snippet.md` routing block in this project's `AGENTS.md`
 
 Keep this QA layer optional.
+
+Do not change product code.
 
 Do not assume browser QA is appropriate for non-web projects.

@@ -3,9 +3,9 @@
 ## Start here
 
 Open your real project in Codex, Claude Code, or another coding agent and paste
-this prompt:
+this prompt first:
 
-Default setup:
+Step 1: set up spec-first development
 
 ```text
 Use https://github.com/potapenko/spec-first-bootstrap as the reference and set up this project for spec-first development.
@@ -13,16 +13,16 @@ Use https://github.com/potapenko/spec-first-bootstrap as the reference and set u
 Read the bootstrap repository first. Add or adapt the needed AGENTS.md, the docs/specs README and template layer, and prompts. If this is an existing project, do brownfield discovery and create project-specific first-pass specs before changing implementation code.
 ```
 
-Web UI with browser QA:
+Optional step 2: add browser QA for a web UI project
 
 ```text
-Use https://github.com/potapenko/spec-first-bootstrap as the reference and set up this web UI project for spec-first development with the optional browser-QA layer.
+Use https://github.com/potapenko/spec-first-bootstrap as the reference and add the optional browser-QA layer to this web UI project.
 
-Read the bootstrap repository first. Add or adapt the needed AGENTS.md, the docs/specs README and template layer, prompts, and qa/web files. Include the qa/web/AGENTS.snippet.md routing block in AGENTS.md so browser-QA instructions load automatically. If this is an existing project, do brownfield discovery and create project-specific first-pass specs before changing implementation code.
+Assume the spec-first bootstrap from step 1 is already installed. Read qa/README.md, qa/web/README.md, and qa/web/AGENTS.snippet.md from the bootstrap repository. Add or adapt the qa/web files for this project, and merge the qa/web/AGENTS.snippet.md routing block into the project's AGENTS.md so browser-QA instructions load automatically. Keep browser QA optional and do not change product code.
 ```
 
-That is the normal setup path. You give the agent this repository URL and pick
-the setup level your project needs.
+That is the normal setup path. Start with step 1. Run step 2 only when the
+project has a browser UI and you want browser QA artifacts.
 
 ## Why this exists
 
@@ -41,7 +41,7 @@ The agent should:
 - add or adapt `AGENTS.md`
 - add the `docs/specs/` README and template layer
 - add useful prompts from `prompts/`
-- add `qa/web` only when browser QA is requested for a web UI project
+- add `qa/web` only in the optional browser-QA step
 - create a product map, spec backlog, or project-specific first-pass specs
   before implementation work starts
 
