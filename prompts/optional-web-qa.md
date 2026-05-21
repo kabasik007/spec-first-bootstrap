@@ -2,7 +2,7 @@ This project has a browser UI.
 
 Use this bootstrap repository as the reference:
 
-<BOOTSTRAP_PATH>
+https://github.com/potapenko/spec-first-bootstrap
 
 Propose a lightweight optional QA layer for browser-based verification.
 

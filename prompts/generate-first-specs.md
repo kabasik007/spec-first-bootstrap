@@ -3,7 +3,7 @@ the highest-priority product areas.
 
 Use this bootstrap repository as the reference:
 
-<BOOTSTRAP_PATH>
+https://github.com/potapenko/spec-first-bootstrap
 
 Each spec should include:
 

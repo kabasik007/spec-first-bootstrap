@@ -1,6 +1,5 @@
-Use this local bootstrap repository as the spec-first reference:
-
-<BOOTSTRAP_PATH>
+Use https://github.com/potapenko/spec-first-bootstrap as the spec-first
+reference.
 
 Read its `AGENTS.md`, `docs/specs/README.md`, spec template, and example spec
 first.
