@@ -11,14 +11,6 @@ Use https://github.com/potapenko/spec-first-bootstrap as the reference and set u
 Read the bootstrap repository first. Add or adapt the needed AGENTS.md, docs/specs, and prompts. Add optional QA only if it fits this project. If this is an existing project, do brownfield discovery and create first-pass specs before changing implementation code.
 ```
 
-Russian version:
-
-```text
-Сходи на https://github.com/potapenko/spec-first-bootstrap и настрой этот проект для spec-first разработки.
-
-Сначала прочитай bootstrap-репозиторий. Добавь или адаптируй инструкции для агента, docs/specs и prompts. QA-слой добавляй только если он подходит проекту. Если проект уже не пустой, сначала разберись в текущем поведении и создай первые спеки; код пока не меняй.
-```
-
 The files below are follow-up prompts for specific situations.
 
 Available prompts:
