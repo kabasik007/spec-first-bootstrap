@@ -8,7 +8,7 @@ this prompt:
 ```text
 Use https://github.com/potapenko/spec-first-bootstrap as the reference and set up this project for spec-first development.
 
-Read the bootstrap repository first. Add or adapt the needed AGENTS.md, docs/specs, and prompts. Add optional QA only if it fits this project. If this is an existing project, do brownfield discovery and create first-pass specs before changing implementation code.
+Read the bootstrap repository first. Add or adapt the needed AGENTS.md, the docs/specs README and template layer, and prompts. Add optional QA only if it fits this project. If this is an existing project, do brownfield discovery and create project-specific first-pass specs before changing implementation code.
 ```
 
 That is the normal setup path. You give the agent this repository URL and ask
@@ -29,11 +29,11 @@ The agent should:
 - read this bootstrap repository first
 - preserve existing project-specific agent instructions
 - add or adapt `AGENTS.md`
-- add the `docs/specs/` product-spec layer
+- add the `docs/specs/` README and template layer
 - add useful prompts from `prompts/`
 - add `qa/` only when a verification layer fits the project
-- create a product map, spec backlog, or first-pass specs before implementation
-  work starts
+- create a product map, spec backlog, or project-specific first-pass specs
+  before implementation work starts
 
 This is not just for browser apps. The same model works for web, backend, API,
 CLI, data pipelines, internal tools, and other software projects. Browser QA is
@@ -61,7 +61,7 @@ Included:
 - a minimal public `AGENTS.md`
 - a product-spec layer under `docs/specs/`
 - a reusable feature spec template
-- example specs
+- an example spec under `examples/`
 - prompt files for greenfield and brownfield adoption
 - an optional browser-QA starter pack for web UI projects
 
@@ -177,7 +177,8 @@ Copy these into the target project:
 Required:
 
 - `AGENTS.md`
-- `docs/`
+- `docs/specs/README.md`
+- `docs/specs/templates/`
 
 Recommended:
 
@@ -186,6 +187,10 @@ Recommended:
 Optional:
 
 - `qa/`
+
+Reference only, not installed as project specs:
+
+- `examples/`
 
 If you copy `qa/`, also add the optional browser-QA routing block from:
 
@@ -199,7 +204,7 @@ After copying, ask the agent to work from the files already inside the project:
 ```text
 Read AGENTS.md and docs/specs/README.md in this project first.
 
-This is a brownfield project. Generate first-pass specs before changing implementation code.
+This is a brownfield project. Generate project-specific first-pass specs before changing implementation code.
 ```
 
 </details>
@@ -216,8 +221,7 @@ This is a brownfield project. Generate first-pass specs before changing implemen
 │       ├── templates/
 │       │   └── feature-spec.md
 │       └── features/
-│           ├── prompt-first-bootstrap.md
-│           └── favorites-spec.md
+│           └── <project-feature>.md
 ├── examples/
 │   └── favorites-spec.md
 ├── prompts/
@@ -234,10 +238,7 @@ This is a brownfield project. Generate first-pass specs before changing implemen
 - `AGENTS.md` - minimal workflow rules for agents
 - `docs/specs/README.md` - how the spec layer works
 - `docs/specs/templates/feature-spec.md` - reusable template
-- `docs/specs/features/prompt-first-bootstrap.md` - onboarding contract for
-  this repo
-- `docs/specs/features/favorites-spec.md` - example production-style spec
-- `examples/favorites-spec.md` - same example in a simpler discovery path
+- `examples/favorites-spec.md` - example production-style spec for reference
 - `prompts/` - ready-to-send prompts for setup and migration
 - `qa/web/` - optional browser-QA starter pack for web UI projects
 

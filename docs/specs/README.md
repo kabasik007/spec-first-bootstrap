@@ -21,6 +21,12 @@ They provide evidence but do not replace the product contract.
 - failure policy and edge cases
 - optional links to representative verification coverage
 
+In this bootstrap repository, production-style example specs live under
+`examples/`, not under `docs/specs/features/`.
+
+When this workflow is installed in a real project, `docs/specs/features/`
+should contain that project's own specs only.
+
 ## What does not live here
 
 - agent workflow and operational rules

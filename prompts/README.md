@@ -8,7 +8,7 @@ Default setup prompt:
 ```text
 Use https://github.com/potapenko/spec-first-bootstrap as the reference and set up this project for spec-first development.
 
-Read the bootstrap repository first. Add or adapt the needed AGENTS.md, docs/specs, and prompts. Add optional QA only if it fits this project. If this is an existing project, do brownfield discovery and create first-pass specs before changing implementation code.
+Read the bootstrap repository first. Add or adapt the needed AGENTS.md, the docs/specs README and template layer, and prompts. Add optional QA only if it fits this project. If this is an existing project, do brownfield discovery and create project-specific first-pass specs before changing implementation code.
 ```
 
 The files below are follow-up prompts for specific situations.
