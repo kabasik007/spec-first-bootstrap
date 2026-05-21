@@ -241,24 +241,6 @@ This is a brownfield project. Generate first-pass specs before changing implemen
 - `prompts/` - ready-to-send prompts for setup and migration
 - `qa/web/` - optional browser-QA starter pack for web UI projects
 
-## Copy-paste starting point
-
-The simplest rule to adopt inside a target project's `AGENTS.md` is this:
-
-```md
-## Spec-First Rule
-
-Before implementing any non-trivial feature:
-
-1. Clarify the product goal.
-2. Create or update a spec under `docs/specs/`.
-3. Confirm user-visible behavior, invariants, and edge cases.
-4. Only then begin implementation.
-
-`AGENTS.md` is not the source of truth for detailed feature behavior.
-Detailed behavior must live in specs.
-```
-
 ## License
 
 MIT
