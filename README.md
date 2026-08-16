@@ -1,100 +1,175 @@
 # Universal AI Development Bootstrap
 
-A local-first, spec-first bootstrap for preparing **any software repository** for AI-assisted development.
+A local-first, spec-first, **autonomous repository onboarding system** for AI-assisted software development.
 
-It does not assume PHP, JavaScript, Python, OpenCart, PrestaShop, a browser UI, or a modern stack. It inspects the target repository, records evidence, resolves composable capabilities, maps dependencies and risk boundaries, and generates project-specific AI development context.
+It is intentionally not bound to PHP, OpenCart, PrestaShop, Python, Node, microservices, browser apps, or a modern stack.
 
-> Detect first. Specify behavior. Respect architecture. Change safely. Verify with evidence.
+> Give the agent the repository. Let it inspect reality. Build the simplest correct architecture. Preserve the rules for the next session.
 
-## v1.1: Context Intelligence
+## Zero-config usage
 
-v1.1 turns the v1.0 detector/pack foundation into an executable context system:
+For a coding agent, this is the primary usage:
 
 ```text
-Target repository
-      ↓
-Discovery + runtime evidence
-      ↓
-Capability Pack Resolver
-      ↓
-Dependency Graph
-      ↓
-Baseline / core-vs-custom evidence
-      ↓
-Policy + Knowledge + Project Memory
-      ↓
-Project-specific .ai/ harness
-      ↓
-Spec → design → implementation → verification
+Use https://github.com/kabasik007/spec-first-bootstrap
 ```
 
-The original spec-first rule is unchanged:
+That is enough to trigger the default autonomous bootstrap protocol when the agent can read this repository.
 
-- `AGENTS.md` defines how agents work
-- `docs/specs/` defines observable product behavior
-- `.ai/ARCHITECTURE.md` and change design define technical structure
-- tests / `qa/` / `.ai/verification/` provide verification evidence
+The agent should treat the current workspace as the target, inspect it, determine architecture and compatibility, generate concise agent instructions and human development docs, and only then begin non-trivial implementation.
 
-## Quick start
+You do **not** need to repeatedly describe:
 
-Python 3.9+ is required only to run the bootstrap engine. **It does not constrain the target project.**
+- PHP/Python/Node/etc. version
+- OpenCart/PrestaShop/framework generation
+- project type
+- folder layout
+- build/test commands
+- whether it is an app/module/plugin/service
+- which documentation files to create
+- which architecture style to use
 
-The target may use PHP 5.x/7.x/8.x, Python, Node, Java, .NET, Go, Rust, legacy frameworks, modern frameworks, or mixed stacks.
+Those are discovered from repository evidence first.
+
+A short intent is optional and useful:
+
+```text
+Use https://github.com/kabasik007/spec-first-bootstrap
+We are adding a new module.
+```
+
+The bootstrap must not invent missing product requirements from that sentence. It uses the intent only to scope architecture/change planning.
+
+Read [`AUTONOMOUS_BOOTSTRAP.md`](AUTONOMOUS_BOOTSTRAP.md) for the full zero-config contract.
+
+## v1.2: Autonomous Bootstrap
+
+v1.2 adds architecture synthesis, standards discovery, research planning and human onboarding on top of the v1.1 Context Intelligence layer.
+
+```text
+repository + optional one-line intent
+        |
+        v
+inspect repository evidence
+        |
+        v
+detect runtime/framework/project shape
+        |
+        v
+resolve capability packs + policy + knowledge
+        |
+        v
+map dependencies + baseline/core boundaries
+        |
+        v
+discover development standards
+        |
+        v
+research only material unresolved facts
+        |
+        v
+preserve/choose simplest sufficient architecture
+        |
+        v
+AGENTS.md + docs + machine-readable .ai context
+        |
+        v
+spec/design only when the actual change requires it
+        |
+        v
+implement + verify
+```
+
+## Architecture default
+
+The bootstrap does **not** default to microservices.
+
+Greenfield preference:
+
+```text
+small stable core
+        ↓
+explicit feature modules
+        ↓
+interfaces (UI/API/CLI/host adapters)
+        ↓
+infrastructure adapters
+        ↓
+verification
+```
+
+A modular monolith/internal module boundary is preferred until a real service boundary exists.
+
+A service split should have a concrete reason:
+
+- independent deployment lifecycle
+- independent scaling profile
+- useful fault isolation
+- explicit data ownership
+- independent team/operational ownership
+
+Brownfield projects preserve existing architecture by default.
+
+Legacy code is not treated as failed greenfield code.
+
+## Core rule
+
+Core stays small.
+
+Feature/business behavior belongs in explicit modules.
+
+UI/API/CLI/platform entry points belong at the edge.
+
+Database/filesystem/queues/external APIs belong behind infrastructure adapters.
+
+Avoid turning `core`, `shared`, `common`, or `utils` into catch-all folders.
+
+## Manual CLI
+
+Python 3.9+ is required only to run the bootstrap engine. It does **not** constrain the target project.
+
+Full autonomous onboarding:
 
 ```bash
-python bootstrap.py detect /path/to/project
-python bootstrap.py init /path/to/project
+python bootstrap.py onboard /path/to/project --intent "short intent"
 python bootstrap.py verify /path/to/project
 ```
 
-Windows:
-
-```powershell
-python bootstrap.py detect D:\projects\my-app
-python bootstrap.py init D:\projects\my-app
-python bootstrap.py verify D:\projects\my-app
-```
-
-`detect` is read-only.
-
-`init` creates/refreshes the machine-readable `.ai/` context. Existing generated Markdown files are preserved unless `--force` is used; discovery, policy, baseline inventory, knowledge selection and memory observations are refreshed.
-
-## New v1.1 commands
-
-### Compare against an official/upstream/local reference
+`init` is also full onboarding by default:
 
 ```bash
-python bootstrap.py baseline /path/to/project --reference /path/to/reference
+python bootstrap.py init /path/to/project
 ```
 
-This creates a deterministic local diff of added, missing and modified files. It is useful for framework/core/vendor boundary analysis without binding the engine to OpenCart, PrestaShop or any other product.
-
-### Check a guarded action
+Old v1.1-style machine harness only:
 
 ```bash
-python bootstrap.py policy-check /path/to/project read .env
-python bootstrap.py policy-check /path/to/project write system/library/foo.php
-python bootstrap.py policy-check /path/to/project execute "git reset --hard HEAD~1"
+python bootstrap.py init /path/to/project --harness-only
 ```
 
-Exit codes:
-
-- `0` allow
-- `2` deny
-- `3` explicit confirmation required
-
-`.ai/policy.json` is machine-readable, but it is not magically an OS sandbox. Agent hosts should call `policy-check` or enforce the same policy mechanically.
-
-### Store a verified project fact
+Read-only architecture preview:
 
 ```bash
-python bootstrap.py memory-add /path/to/project runtime.production_php 7.4.33 \
-  --source "production php -v" --confidence 1
+python bootstrap.py detect /path/to/project --intent "short intent"
 ```
 
-Manual facts keep provenance and are not silently overwritten by a later auto-scan.
+## What full onboarding creates
 
-## Generated target structure
+Human-facing project context:
+
+```text
+AGENTS.md
+
+docs/
+├── ARCHITECTURE.md
+├── DEVELOPMENT.md
+└── specs/
+    ├── README.md
+    └── templates/
+        └── feature-spec.md
+```
+
+Machine-readable context:
 
 ```text
 .ai/
@@ -111,34 +186,91 @@ Manual facts keep provenance and are not silently overwritten by a later auto-sc
 │   ├── project-facts.json
 │   ├── packs.json
 │   ├── dependency-graph.json
+│   ├── architecture.json
 │   └── risks.json
-├── baseline/
-│   ├── inventory.json
-│   └── diff.json
-├── knowledge/
+├── standards/
 │   └── index.json
+├── research/
+│   ├── agenda.json
+│   └── README.md
+├── baseline/
+├── knowledge/
 ├── memory/
-│   └── project-memory.json
 ├── decisions/
 ├── changes/
 └── verification/
 ```
 
-Product specs remain separate:
+Existing human content is preserved. Bootstrap-owned sections use managed markers and are updated without replacing unrelated project documentation.
 
-```text
-docs/specs/
-├── README.md
-├── templates/
-│   └── feature-spec.md
-└── features/
-```
+## Human docs are part of the product
+
+The bootstrap does not only generate files for an AI.
+
+`docs/ARCHITECTURE.md` should let a developer answer:
+
+- what the main components are
+- where feature logic belongs
+- what belongs in core
+- where external IO lives
+- which boundaries are deployable vs internal
+- why the current architecture style was chosen
+- when a module is allowed to become a service
+
+`docs/DEVELOPMENT.md` should let a developer answer:
+
+- how to start
+- what commands exist
+- what lint/format/type/test configuration exists
+- what conventions are already present
+- how to add a new module/block/service safely
+- where exact runtime compatibility facts live
+
+## Retrieval-friendly instructions
+
+Agent instructions are written for retrieval, not as essays.
+
+Default rules:
+
+- one rule/fact per bullet or line
+- exact paths for path-specific rules
+- stable keywords in headings
+- short root `AGENTS.md`
+- detailed knowledge in linked/scoped docs
+- no important compatibility rule hidden in a long paragraph
+
+Tool-specific `.codex`, `.claude`, `.cursor`, etc. files are **not generated by default**.
+
+The bootstrap uses the cross-agent `AGENTS.md` convention first and adds tool-specific adapters only when they materially improve the active tool.
+
+A standard Agent Skill is also included at [`skills/bootstrap-project/SKILL.md`](skills/bootstrap-project/SKILL.md).
+
+## Research policy
+
+The local CLI does not pretend it can know every framework version convention.
+
+It creates `.ai/research/agenda.json` for material unknowns.
+
+A capable coding agent should use web/connected documentation tools when:
+
+- exact framework/version behavior is uncertain
+- official extension architecture affects the design
+- a current tool/standard capability may have changed
+
+Source preference:
+
+1. exact repository evidence
+2. official version-matched documentation
+3. official source/release/tag
+4. primary technical standards
+
+Never silently apply current/latest framework documentation to a legacy target.
+
+Research findings should record source, version/date, claim, affected decision and confidence.
 
 ## Universal detection
 
-The engine recognizes common evidence for:
-
-### Languages / runtimes
+Current language/runtime evidence includes:
 
 - PHP
 - Python
@@ -148,7 +280,7 @@ The engine recognizes common evidence for:
 - Java
 - .NET
 
-### Frameworks / platforms
+Current framework/platform evidence includes:
 
 - OpenCart
 - PrestaShop
@@ -163,62 +295,39 @@ The engine recognizes common evidence for:
 - Next.js
 - Electron
 
-Unknown stacks still work through generic/catalog capability packs. A framework is never supposed to become a global assumption.
+Unknown stacks still work through generic capability packs and repository evidence.
 
-## Runtime compatibility is a target fact
+A framework is a capability, not a bootstrap-wide assumption.
 
-A central rule:
+## Runtime compatibility is a project fact
 
-> **Never upgrade syntax merely because the bootstrap engine itself is modern.**
+> Never modernize syntax just because the bootstrap engine is modern.
 
-PHP 5.6, PHP 7.4 and PHP 8.x are different target constraints. The same applies to Python, Node, Java, .NET, framework generations, database versions, browser targets and operating systems.
+PHP 5.6, PHP 7.4 and PHP 8.x are different valid target constraints.
 
-Capability packs contribute compatibility guidance, but exact project evidence wins.
+The same principle applies to Python, Node, Java, .NET, framework generations, database versions, browsers and operating systems.
 
-## Executable capability packs
+Verified project evidence wins over generic guidance.
 
-v1.0 selected pack IDs. v1.1 **loads and resolves them**.
+## Context Intelligence from v1.1
 
-A detailed pack can contribute:
+v1.2 keeps the full v1.1 layer.
 
-- `extends`
-- runtime/framework compatibility rules
-- project rules
+### Capability packs
+
+Packs can contribute:
+
+- inheritance via `extends`
+- compatibility rules
+- architecture/project rules
 - protected paths
 - verification requirements
 - curated knowledge IDs
 - policy fragments
 
-Example:
+### Dependency graph
 
-```text
-base/spec-first
-base/architecture
-base/change-lifecycle
-base/security
-languages/php
-frameworks/opencart
-project-types/extension-platform
-verification/extension
-verification/web
-```
-
-Pack inheritance is recursive and deterministic.
-
-Catalog-only packs remain valid fallback capabilities, so bootstrap does not fail simply because a framework does not yet have a rich manifest. `verify` reports catalog-only packs as warnings so they can be improved incrementally.
-
-See [`packs/README.md`](packs/README.md) and [`schemas/pack.schema.json`](schemas/pack.schema.json).
-
-## Dependency graph
-
-v1.1 reads local dependency manifests and creates:
-
-```text
-.ai/discovery/dependency-graph.json
-.ai/DEPENDENCIES.md
-```
-
-Supported direct dependency evidence includes:
+Direct dependency evidence currently supports:
 
 - Composer
 - npm/package.json
@@ -229,166 +338,78 @@ Supported direct dependency evidence includes:
 - Maven
 - NuGet `.csproj`
 
-It records ecosystem, package, constraint, scope and source manifest.
+### Baseline engine
 
-This is deliberately a **manifest graph**, not a fake “complete architecture graph.” Source/import/call graphs can be layered on later.
-
-## Baseline engine
-
-`init` creates a baseline inventory with SHA-256 hashes and classifications.
-
-Secret-like files are skipped.
-
-Paths can be classified as:
-
-- `project`
-- `protected`
-- `generated-or-vendor`
-
-A reference comparison identifies:
-
-- added
-- missing
-- modified
-- protected-path changes
-
-The core does **not** automatically download an “official” baseline. The caller must select the correct reference/version explicitly. This prevents accidental comparison of incompatible framework generations and keeps the default workflow local-first.
-
-## Knowledge vs memory
-
-These are intentionally separate.
-
-### Knowledge
-
-`knowledge/catalog.json` contains reusable bootstrap guidance with provenance.
-
-Selected knowledge is written to:
-
-```text
-.ai/knowledge/index.json
+```bash
+python bootstrap.py baseline /path/to/project --reference /path/to/reference
 ```
 
-### Memory
+The engine compares explicit local references and never assumes that the latest upstream framework version matches a legacy target.
 
-`.ai/memory/project-memory.json` contains facts about **this exact project**.
+### Policy engine
 
-Each fact has:
-
-- value
-- confidence
-- source/evidence
-- `observed_at`
-- `last_seen`
-
-Trust project-specific verified evidence over generic knowledge.
-
-Never store secrets in memory.
-
-## Policy and permissions
-
-`.ai/policy.json` can describe:
-
-- `deny_read`
-- `deny_write`
-- `confirm_write`
-- `confirm_commands`
-
-Capability packs can contribute policy fragments.
-
-This gives Codex/Claude/IDE wrappers/CI a stable decision primitive instead of relying only on prose instructions.
-
-The repository does not claim that an instruction file alone can enforce security. Full filesystem/process/database sandboxing belongs to the agent host or runtime.
-
-## Brownfield is first-class
-
-Existing applications are not treated as failed greenfield projects.
-
-Before invasive change, discover:
-
-- languages/runtime constraints
-- frameworks/platforms/versions
-- direct dependency contracts
-- project/system shape
-- entry points and commands
-- core/vendor/generated boundaries
-- existing modifications
-- migrations and persistence risks
-- integrations/deployment
-- tests and QA
-- unknowns and conflicts
-
-A baseline/reference diff is especially useful for legacy frameworks, but it is optional and universal.
-
-## Modules, plugins and extensions
-
-Extension development is modeled as a capability, not as an OpenCart-specific special case.
-
-Relevant constraints include:
-
-- host platform/version
-- extension type
-- install / upgrade / uninstall lifecycle
-- events/hooks/services/overrides/modification systems
-- permissions
-- database changes
-- translations/languages
-- package layout
-- host/runtime compatibility
-- core-protection boundaries
-
-OpenCart and PrestaShop are initial detailed packs; the architecture supports other platforms the same way.
-
-## Product specs vs architecture
-
-```text
-docs/specs/          WHAT observable behavior must do
-.ai/ARCHITECTURE.md  HOW the system is structured/bounded
-.ai/changes/...      HOW one non-trivial change will be made
-verification/tests   HOW the contract is checked
+```bash
+python bootstrap.py policy-check /path/to/project read .env
+python bootstrap.py policy-check /path/to/project write system/library/foo.php
+python bootstrap.py policy-check /path/to/project execute "git reset --hard HEAD~1"
 ```
 
-The existing feature spec remains product-level:
+Decisions:
 
-- Goal
-- Scope
-- Non-goals
-- User-visible behavior
-- Invariants
-- Edge cases and failure policy
-- Route / state / data implications
-- Verification mapping
+- `allow`
+- `confirm`
+- `deny`
 
-## Adaptive change lifecycle
+Policy is a machine-readable decision primitive, not a claim that Markdown is an OS sandbox.
 
-```text
-L0 trivial      → implementation + focused verification
-L1 small fix    → short plan + implementation + verification
-L2 feature      → spec + plan + implementation + verification
-L3 architecture → spec + design/ADR + plan + tests + verification
-L4 critical     → impact + rollback/migration/security + staged verification
+### Project memory
+
+```bash
+python bootstrap.py memory-add /path/to/project runtime.production_php 7.4.33 \
+  --source "production php -v" --confidence 1
 ```
 
-Do not generate architecture bureaucracy for trivial work.
+Manual verified facts keep provenance and are not silently overwritten by auto-discovery.
 
-## Verification is capability-driven
+## Change rigor scales with risk
 
-Browser QA remains optional.
+```text
+L0 trivial      -> implementation + focused verification
+L1 small fix    -> short plan + implementation + verification
+L2 feature      -> spec + plan + implementation + verification
+L3 architecture -> spec + design/ADR + plan + tests + verification
+L4 critical     -> impact + rollback/migration/security + staged verification
+```
 
-v1.1 detailed verification packs currently cover:
+Do not generate paperwork for trivial work.
 
-- web/browser
-- API/backend
-- extension/module lifecycle
+Do not regenerate the whole bootstrap context for every small edit.
 
-The model can grow to CLI, desktop, database/migrations, packaging, security, pipelines and performance without changing the core workflow.
+## Influences and research
+
+v1.2 was informed by primary-source research into:
+
+- GitHub Spec Kit
+- OpenSpec
+- Agent OS
+- BootstrapAgent
+- Codex `AGENTS.md` behavior
+- Agent Skills specification
+
+The useful ideas and the parts intentionally *not* copied are documented in [`docs/design-research.md`](docs/design-research.md).
 
 ## Repository structure
 
 ```text
 .
+├── AUTONOMOUS_BOOTSTRAP.md
 ├── bootstrap.py
 ├── engine/
 │   ├── discovery.py
+│   ├── architecture.py
+│   ├── standards.py
+│   ├── research.py
+│   ├── onboarding.py
 │   ├── packs.py
 │   ├── dependencies.py
 │   ├── baseline.py
@@ -396,13 +417,12 @@ The model can grow to CLI, desktop, database/migrations, packaging, security, pi
 │   ├── knowledge.py
 │   ├── memory.py
 │   └── harness.py
+├── skills/
+│   └── bootstrap-project/
+│       └── SKILL.md
 ├── AGENTS.md
 ├── docs/
-│   ├── architecture.md
-│   ├── context-intelligence.md
-│   └── specs/
 ├── knowledge/
-│   └── catalog.json
 ├── packs/
 ├── schemas/
 ├── templates/
@@ -412,40 +432,29 @@ The model can grow to CLI, desktop, database/migrations, packaging, security, pi
 └── tests/
 ```
 
-## For coding agents
-
-When this repository is available locally:
-
-```text
-Read AGENTS.md and docs/architecture.md.
-Run `python bootstrap.py detect <target>`.
-Review facts, resolved packs, dependencies, baseline classifications and policy.
-Run `python bootstrap.py init <target>`.
-For non-trivial work, read the generated project context before changing implementation code.
-Call policy-check before guarded actions.
-Preserve provenance when adding durable project memory.
-```
-
-The prompt pack remains a manual fallback when the engine cannot run.
-
 ## Design goals
 
+- one repository reference should be enough to start
 - universal rather than framework-bound
-- greenfield and brownfield
-- applications, libraries, services, modules, plugins, extensions, CLIs, desktop tools, workers and pipelines
-- local-first
-- evidence-driven
+- correct for greenfield and brownfield
+- architecture before accidental complexity
+- modular by default, microservices only with evidence
+- human-readable and agent-readable context
+- local-first discovery
+- web research only for material/version-sensitive unknowns
 - legacy-compatible
-- minimal dependency surface
-- composable
-- machine-readable
-- safe without pretending prose is a sandbox
-- strict for risky work without becoming bureaucracy for trivial changes
+- minimal bootstrap dependencies
+- machine-readable guardrails
+- persistent verified project knowledge
+- concise retrieval-friendly instructions
+- strict for risky work without bureaucracy for small work
 
-## Architecture details
+## Documentation
 
+- [`AUTONOMOUS_BOOTSTRAP.md`](AUTONOMOUS_BOOTSTRAP.md)
 - [`docs/architecture.md`](docs/architecture.md)
 - [`docs/context-intelligence.md`](docs/context-intelligence.md)
+- [`docs/design-research.md`](docs/design-research.md)
 
 ## License
 
