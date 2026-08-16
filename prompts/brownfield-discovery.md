@@ -1,25 +1,37 @@
-Use https://github.com/potapenko/spec-first-bootstrap as the spec-first
-reference.
+Use https://github.com/kabasik007/spec-first-bootstrap as the bootstrap reference.
 
-Read its `AGENTS.md`, `docs/specs/README.md`, spec template, and
-`examples/favorites-spec.md` as an example only.
+This is an existing project. Do not write implementation code yet.
 
-This is an existing project that needs a spec-first migration.
+First detect and map the repository. Prefer running:
 
-Do not write code yet.
+```bash
+python bootstrap.py detect <target>
+python bootstrap.py init <target>
+```
 
-Analyze the current repository and extract product behavior from:
+Then inspect repository evidence and generated `.ai/discovery/` output.
 
-- code
-- routes
-- state transitions
-- tests
-- docs
-- UI flows
+Discover:
 
-Produce:
+- languages and target runtime constraints
+- frameworks/platforms and their versions when evidence exists
+- project types and system shape
+- entry points, routes/APIs, state/data flow
+- package/build/test/run commands
+- database, migrations, queues, jobs, cron/background workers
+- integrations and deployment boundaries
+- modules/plugins/extensions and host lifecycle
+- framework core/vendor/generated/custom boundaries
+- tests, QA and verification surfaces
+- security-sensitive and destructive operations
 
-1. a product map
-2. a spec backlog
-3. the top product areas that need first-pass specs
-4. unknowns, conflicts, and assumptions that need confirmation
+Produce or update:
+
+1. project map
+2. architecture/boundary map
+3. spec backlog
+4. highest-priority first-pass product specs
+5. risk zones
+6. unknowns/conflicts/assumptions with confidence/evidence
+
+Do not modernize legacy syntax, framework structure, or runtime constraints merely because newer conventions exist. Existing behavior is evidence; verify intent before changing it.
