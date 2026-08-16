@@ -1,0 +1,18 @@
+{
+  "id": "languages/php",
+  "version": "1.0.0",
+  "kind": "language",
+  "compatibility": [
+    "Support the target project's declared PHP runtime, including legacy runtimes when detected.",
+    "Do not introduce syntax or standard-library assumptions newer than the project's supported PHP version."
+  ],
+  "rules": [
+    "Read composer constraints and platform settings before changing language-level syntax.",
+    "Treat PHP version as a project fact, never as a bootstrap-wide assumption.",
+    "Preserve existing autoloading and extension requirements unless the active change explicitly migrates them."
+  ],
+  "verification": [
+    "Syntax-check changed PHP files with a compatible PHP runtime when available.",
+    "Run project-native tests or smoke checks rather than assuming PHPUnit exists."
+  ]
+}
