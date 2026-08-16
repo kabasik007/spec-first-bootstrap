@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Universal AI Development Bootstrap.
 
-Local-first project discovery, capability packs, architecture context, dependency
-mapping, baseline intelligence, policy checks, knowledge, and provenance-aware
-project memory. No third-party Python packages are required.
+Local-first project discovery, autonomous architecture synthesis, capability packs,
+dependency mapping, baseline intelligence, policy checks, knowledge, standards,
+research agenda, and provenance-aware project memory.
+
+No third-party Python packages are required.
 """
 from __future__ import annotations
 
@@ -17,6 +19,7 @@ from engine.harness import (
     build_context,
     check_policy_target,
     init_target,
+    onboard_target,
     run_baseline,
     verify_target,
 )
@@ -35,12 +38,20 @@ def main() -> int:
 
     detect = sub.add_parser("detect", help="scan a target without modifying it")
     detect.add_argument("target", nargs="?", default=".")
+    detect.add_argument("--intent", default="", help="optional one-line product/change intent for architecture synthesis")
 
-    init = sub.add_parser("init", help="generate/update the .ai project harness")
+    init = sub.add_parser("init", help="autonomously onboard the target and generate AI + human development context")
     init.add_argument("target", nargs="?", default=".")
-    init.add_argument("--force", action="store_true", help="replace generated Markdown files")
+    init.add_argument("--intent", default="", help="optional one-line product/change intent")
+    init.add_argument("--force", action="store_true", help="replace generated .ai Markdown files")
+    init.add_argument("--harness-only", action="store_true", help="skip human AGENTS/docs onboarding; preserve v1.1-style behavior")
 
-    verify = sub.add_parser("verify", help="validate the generated harness")
+    onboard = sub.add_parser("onboard", help="explicit alias for full autonomous onboarding")
+    onboard.add_argument("target", nargs="?", default=".")
+    onboard.add_argument("--intent", default="", help="optional one-line product/change intent")
+    onboard.add_argument("--force", action="store_true", help="replace generated .ai Markdown files")
+
+    verify = sub.add_parser("verify", help="validate the generated harness and human onboarding docs")
     verify.add_argument("target", nargs="?", default=".")
 
     baseline = sub.add_parser("baseline", help="inventory target or compare with a local reference")
@@ -62,10 +73,10 @@ def main() -> int:
     args = parser.parse_args()
     target = Path(args.target).resolve()
     if not target.exists():
-        parser.error(f"target does not exist: {target}")
+        parser.error("target does not exist: {}".format(target))
 
     if args.cmd == "detect":
-        context = build_context(target, BOOTSTRAP_ROOT)
+        context = build_context(target, BOOTSTRAP_ROOT, args.intent)
         output = dict(context["facts"])
         output.update({
             "bootstrap_version": VERSION,
@@ -74,12 +85,26 @@ def main() -> int:
             "policy": context["policy"],
             "knowledge": context["knowledge"],
             "baseline": context["baseline"],
+            "architecture": context["architecture"],
+            "standards": context["standards"],
+            "research": context["research"],
         })
         print(json.dumps(output, indent=2, ensure_ascii=False))
         return 0
 
     if args.cmd == "init":
-        print(json.dumps(init_target(target, BOOTSTRAP_ROOT, args.force), indent=2, ensure_ascii=False))
+        result = init_target(
+            target,
+            BOOTSTRAP_ROOT,
+            force=args.force,
+            intent=args.intent,
+            onboard=not args.harness_only,
+        )
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        return 0
+
+    if args.cmd == "onboard":
+        print(json.dumps(onboard_target(target, BOOTSTRAP_ROOT, args.intent, args.force), indent=2, ensure_ascii=False))
         return 0
 
     if args.cmd == "verify":
@@ -90,7 +115,7 @@ def main() -> int:
     if args.cmd == "baseline":
         reference = Path(args.reference).resolve() if args.reference else None
         if reference is not None and not reference.exists():
-            parser.error(f"reference does not exist: {reference}")
+            parser.error("reference does not exist: {}".format(reference))
         report = run_baseline(target, BOOTSTRAP_ROOT, reference)
         print(json.dumps(report, indent=2, ensure_ascii=False))
         return 0
