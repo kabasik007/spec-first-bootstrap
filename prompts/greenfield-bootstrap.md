@@ -1,18 +1,18 @@
-Use https://github.com/potapenko/spec-first-bootstrap as the spec-first
-reference.
-
-Read its `AGENTS.md`, `docs/specs/README.md`, spec template, and
-`examples/favorites-spec.md` as an example only.
+Use https://github.com/kabasik007/spec-first-bootstrap as the bootstrap reference.
 
 This is a new or mostly empty project.
 
-Set up a lightweight spec-first workflow for the current project.
+Do not choose a framework or architecture merely because the bootstrap has a pack for it. First establish the product requirements and intended deployment/runtime constraints.
 
-Do not start implementing product features yet.
+Set up a lightweight universal spec-first workflow:
 
-First:
+1. define the product goal and primary system type
+2. record explicit runtime/platform constraints
+3. select only the capability packs that match the chosen stack
+4. initialize `.ai/` project, architecture, commands, rules, changes and verification layers
+5. create the initial product-spec structure
+6. propose the first product areas that require specs before implementation
+7. identify architectural decisions that should be recorded separately from product specs
+8. recommend the smallest first vertical slice and its verification strategy
 
-1. decide the minimal structure needed
-2. propose the first product areas that need specs
-3. generate an initial spec backlog
-4. recommend which first spec should be written before code
+Keep the system composable. Do not make one framework, language, database, UI type, or deployment model a global assumption.
