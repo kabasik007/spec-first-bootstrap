@@ -1,0 +1,21 @@
+{
+  "id": "frameworks/prestashop",
+  "version": "1.0.0",
+  "kind": "framework",
+  "extends": ["languages/php"],
+  "compatibility": [
+    "Detect the installed PrestaShop generation/version before applying conventions.",
+    "Do not assume module APIs, Symfony integration, hooks, or override behavior are identical across versions."
+  ],
+  "protected_paths": ["classes/", "controllers/", "src/", "config/"],
+  "rules": [
+    "Prefer modules, hooks, services, and documented override mechanisms over core edits.",
+    "Treat existing overrides and core changes as brownfield facts that require impact analysis.",
+    "Preserve module install/uninstall/upgrade lifecycle, translations, database changes, and packaging rules."
+  ],
+  "verification": [
+    "Verify module installation and upgrade paths.",
+    "Verify back-office and front-office behavior separately when both are affected.",
+    "Verify target-version PHP compatibility."
+  ]
+}
