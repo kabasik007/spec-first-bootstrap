@@ -2,8 +2,8 @@
 """Universal AI Development Bootstrap.
 
 Local-first project discovery, autonomous architecture synthesis, capability packs,
-dependency mapping, baseline intelligence, policy checks, knowledge, standards,
-research agenda, and provenance-aware project memory.
+dependency mapping, baseline intelligence, blocking-question gates, execution roadmap,
+policy checks, knowledge, standards, research agenda, and provenance-aware project memory.
 
 No third-party Python packages are required.
 """
@@ -16,6 +16,7 @@ from pathlib import Path
 from engine.harness import (
     VERSION,
     add_memory_target,
+    answer_question_target,
     build_context,
     check_policy_target,
     init_target,
@@ -44,15 +45,21 @@ def main() -> int:
     init.add_argument("target", nargs="?", default=".")
     init.add_argument("--intent", default="", help="optional one-line product/change intent")
     init.add_argument("--force", action="store_true", help="replace generated .ai Markdown files")
-    init.add_argument("--harness-only", action="store_true", help="skip human AGENTS/docs onboarding; preserve v1.1-style behavior")
+    init.add_argument("--harness-only", action="store_true", help="skip human AGENTS/docs onboarding; preserve machine-harness-only behavior")
 
     onboard = sub.add_parser("onboard", help="explicit alias for full autonomous onboarding")
     onboard.add_argument("target", nargs="?", default=".")
     onboard.add_argument("--intent", default="", help="optional one-line product/change intent")
     onboard.add_argument("--force", action="store_true", help="replace generated .ai Markdown files")
 
-    verify = sub.add_parser("verify", help="validate the generated harness and human onboarding docs")
+    verify = sub.add_parser("verify", help="validate generated context and report implementation readiness")
     verify.add_argument("target", nargs="?", default=".")
+
+    answer = sub.add_parser("answer", help="answer one generated blocking question and refresh roadmap/context")
+    answer.add_argument("target")
+    answer.add_argument("question_id", help="question id from .ai/questions/blocking.json")
+    answer.add_argument("value", help="confirmed answer value")
+    answer.add_argument("--source", default="user-confirmed bootstrap answer", help="provenance for the verified answer")
 
     baseline = sub.add_parser("baseline", help="inventory target or compare with a local reference")
     baseline.add_argument("target", nargs="?", default=".")
@@ -88,6 +95,8 @@ def main() -> int:
             "architecture": context["architecture"],
             "standards": context["standards"],
             "research": context["research"],
+            "questions": context["questions"],
+            "roadmap": context["roadmap"],
         })
         print(json.dumps(output, indent=2, ensure_ascii=False))
         return 0
@@ -111,6 +120,11 @@ def main() -> int:
         code, result = verify_target(target, BOOTSTRAP_ROOT)
         print(json.dumps(result, indent=2, ensure_ascii=False))
         return code
+
+    if args.cmd == "answer":
+        result = answer_question_target(target, BOOTSTRAP_ROOT, args.question_id, args.value, args.source)
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        return 0 if result.get("status") == "ok" else 1
 
     if args.cmd == "baseline":
         reference = Path(args.reference).resolve() if args.reference else None
