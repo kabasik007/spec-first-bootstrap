@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Dict, List, Set
+from typing import List
 
 
 IGNORED_TOP_LEVEL = {
@@ -12,6 +12,7 @@ IGNORED_TOP_LEVEL = {
 ROLE_BY_NAME = {
     "src": "application source",
     "app": "application source",
+    "apps": "workspace applications",
     "core": "shared core/domain contracts",
     "domain": "domain model and business rules",
     "modules": "feature modules/extensions",
@@ -42,7 +43,8 @@ ROLE_BY_NAME = {
     "test": "verification",
 }
 
-DEPLOYABLE_NAMES = {"services", "backend", "frontend", "api", "workers", "worker", "web"}
+DEPLOYABLE_NAMES = {"apps", "services", "backend", "frontend", "api", "workers", "worker", "web"}
+WORKSPACE_CONTAINERS = {"apps", "services", "packages", "modules", "plugins", "extensions", "workers"}
 
 
 def _top_level_dirs(target: Path) -> List[Path]:
@@ -57,34 +59,64 @@ def _top_level_dirs(target: Path) -> List[Path]:
     return result
 
 
-def _manifest_roots(dependencies: dict) -> Set[str]:
-    roots: Set[str] = set()
-    for manifest in dependencies.get("manifests", []):
-        path = manifest.get("path", "")
+def _workspace_components(dependencies: dict) -> List[dict]:
+    result = []
+    for component in dependencies.get("components", []):
+        path = component.get("path", "").strip("/")
         if not path:
             continue
         parts = Path(path).parts
-        if len(parts) > 1:
-            roots.add(parts[0])
-    return roots
+        top = parts[0].lower() if parts else ""
+        leaf = parts[-1] if parts else path
+        deployment = "candidate" if top in {"apps", "services", "workers"} else "shared"
+        if top in {"packages", "modules", "plugins", "extensions"}:
+            role = "workspace module/package"
+        elif top == "services":
+            role = "deployable service candidate"
+        elif top == "apps":
+            role = "deployable application candidate"
+        elif top == "workers":
+            role = "background worker candidate"
+        else:
+            role = ROLE_BY_NAME.get(leaf.lower(), "manifest-defined workspace component")
+        result.append({
+            "name": leaf,
+            "path": path.rstrip("/") + "/",
+            "role": role,
+            "deployment": deployment,
+            "source": "dependency-manifest",
+        })
+    return result
 
 
 def _existing_components(target: Path, dependencies: dict) -> List[dict]:
-    manifest_roots = _manifest_roots(dependencies)
-    components = []
+    workspace = _workspace_components(dependencies)
+    workspace_paths = {item["path"].rstrip("/") for item in workspace}
+    workspace_tops = {Path(path).parts[0] for path in workspace_paths if Path(path).parts}
+    components = list(workspace)
+
     for directory in _top_level_dirs(target):
         name = directory.name
-        role = ROLE_BY_NAME.get(name.lower())
-        if not role and name not in manifest_roots:
+        lower = name.lower()
+        role = ROLE_BY_NAME.get(lower)
+        if not role:
             continue
-        deployment = "candidate" if name.lower() in DEPLOYABLE_NAMES or name in manifest_roots else "shared"
+        if lower in WORKSPACE_CONTAINERS and name in workspace_tops:
+            # Child manifest-defined components carry more useful architecture evidence.
+            continue
+        path = name + "/"
+        if path.rstrip("/") in workspace_paths:
+            continue
+        deployment = "candidate" if lower in DEPLOYABLE_NAMES else "shared"
         components.append({
             "name": name,
-            "path": name + "/",
-            "role": role or "workspace component",
+            "path": path,
+            "role": role,
             "deployment": deployment,
             "source": "repository-evidence",
         })
+
+    components.sort(key=lambda item: item["path"])
     return components
 
 
@@ -143,15 +175,15 @@ def _architecture_style(facts: dict, components: List[dict]) -> dict:
             "name": "host-extension",
             "reason": "A host extension/platform boundary was detected; preserve host lifecycle and keep custom logic isolated from platform core.",
         }
-    if len(deployable) >= 2:
-        return {
-            "name": "multi-component",
-            "reason": "Multiple independently shaped top-level components/manifests were detected; preserve those boundaries before considering consolidation or further splitting.",
-        }
     if "desktop" in types:
         return {"name": "modular-desktop", "reason": "Desktop lifecycle detected; use feature modules behind a small application core."}
     if "web-ui" in types and "backend" in types:
         return {"name": "modular-web-application", "reason": "Frontend and backend capabilities coexist; keep interface and application/domain boundaries explicit."}
+    if len(deployable) >= 2:
+        return {
+            "name": "multi-component",
+            "reason": "Multiple manifest-defined deployment candidates were detected; preserve those existing boundaries before considering consolidation or further splitting.",
+        }
     if "backend" in types:
         return {"name": "modular-backend", "reason": "Backend/service application detected; organize around domain/application modules and adapters."}
     if "cli-or-service" in types:
@@ -168,10 +200,11 @@ def synthesize(target: Path, facts: dict, dependencies: dict, intent: str = "") 
     components = existing if existing else _greenfield_blueprint(facts.get("project_types", []))
     style = _architecture_style(facts, components)
 
-    microservice_evidence = []
-    for component in components:
-        if component.get("deployment") == "candidate":
-            microservice_evidence.append(component.get("path", component.get("name", "")))
+    microservice_evidence = [
+        component.get("path", component.get("name", ""))
+        for component in components
+        if component.get("deployment") == "candidate"
+    ]
 
     return {
         "schema_version": 1,
