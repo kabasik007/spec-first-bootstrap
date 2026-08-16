@@ -1,206 +1,187 @@
 # AGENTS.md
 
-This file defines workflow rules for agents working on Universal Bootstrap itself and for agents using a generated project harness.
+Rules for agents working on Universal AI Development Bootstrap itself.
 
-It is not the source of truth for detailed product behavior. Product behavior belongs in `docs/specs/`. Technical project facts and guardrails belong in generated `.ai/` artifacts.
+For bootstrapping another repository, also read `AUTONOMOUS_BOOTSTRAP.md`.
+
+## Autonomous trigger
+
+- If a user references this repository while working on a software project, treat that as a request to autonomously onboard the current workspace unless they say otherwise.
+- Do not force the user through a setup questionnaire when stack/runtime/architecture facts can be discovered from the repository.
+- A short user intent is optional; do not invent missing product requirements from it.
 
 ## Reading order
 
-Before non-trivial implementation work:
+Before non-trivial changes to this repository:
 
-1. Read `AGENTS.md`.
-2. Read `docs/architecture.md`.
-3. For a bootstrapped target, read:
-   - `.ai/PROJECT.md`
-   - `.ai/ARCHITECTURE.md`
-   - `.ai/DEPENDENCIES.md`
-   - `.ai/RULES.md`
-   - `.ai/VERIFICATION.md`
-   - `.ai/policy.json`
-4. Read relevant product specs under `docs/specs/`.
-5. Read active `.ai/changes/<id>/` artifacts for risky or architectural work.
-6. Read project memory only as evidence with provenance, never as an excuse to skip current repository evidence.
+- Read `AGENTS.md`.
+- Read `AUTONOMOUS_BOOTSTRAP.md` when changing onboarding behavior.
+- Read `docs/architecture.md` and `docs/context-intelligence.md` when changing engine architecture.
+- Read `docs/design-research.md` when changing default workflow philosophy.
+- Read relevant tests before changing a behavioral invariant.
 
-## Detect before assuming
-
-Do not assume language, framework, runtime version, commands, package manager, project type, extension model or architecture when repository evidence can answer it.
-
-Prefer:
-
-```bash
-python bootstrap.py detect <target>
-python bootstrap.py init <target>
-```
-
-Treat detected facts as evidence with confidence, not infallible truth.
+For a bootstrapped target, generated root `AGENTS.md` is the concise entry point; detailed target truth lives in `docs/` and `.ai/`.
 
 ## Trust order
 
-When facts conflict, prefer:
+When guidance conflicts:
 
-1. explicitly verified project fact with provenance
-2. exact project/version-specific repository evidence
-3. baseline/reference evidence confirmed to match the target
-4. high-confidence detection
-5. capability-pack guidance
-6. generic knowledge
+- explicit current user instruction
+- verified project-specific fact with provenance
+- exact repository evidence
+- matching version-specific baseline/documentation
+- existing project architecture/specification
+- detected capability pack
+- generic bootstrap guidance
 
-Never let generic guidance override a verified target constraint.
+Generic advice must never override verified target compatibility.
 
-## Universal compatibility rule
+## Universal compatibility
 
-The bootstrap runtime is not the target runtime.
+- The bootstrap runtime is not the target runtime.
+- Legacy runtimes/frameworks are valid targets.
+- Do not introduce syntax/APIs newer than the target without an explicit migration.
+- Do not normalize brownfield code merely because a newer convention exists.
+- Preserve package manager, lockfile, build, deployment and extension conventions unless the active change migrates them.
 
-A target may intentionally use legacy PHP, Python, Node, Java, .NET, databases, browsers, OS versions or framework generations.
+## Architecture defaults
 
-- Do not introduce syntax/APIs newer than the supported target without an explicit migration.
-- Do not normalize a legacy project merely because newer conventions exist.
-- Preserve package manager, lockfile, build, deployment and extension conventions unless the change intentionally migrates them.
+- Preserve brownfield architecture by default.
+- Greenfield default: simplest architecture with strong internal boundaries.
+- Keep core small and stable.
+- Put feature/business behavior in explicit modules.
+- Keep UI/API/CLI/platform entry points at the edge.
+- Put database/filesystem/queues/external APIs behind infrastructure adapters.
+- Avoid catch-all `core`, `shared`, `common`, or `utils` growth.
+- Prefer internal module boundaries over microservices until a concrete operational boundary exists.
 
-## Spec-first rule
+A new service boundary needs evidence such as:
 
-Before implementing a non-trivial observable behavior change:
+- independent deployment
+- independent scaling
+- useful fault isolation
+- explicit data ownership
+- independent team/operational ownership
 
-1. clarify the product goal
-2. create or update the relevant product spec
-3. confirm behavior, invariants, failure policy and compatibility
-4. create technical design separately when architectural
-5. implement against the contract
-6. update verification evidence
+## Spec-first boundary
 
-## Separation of concerns
+- Product specs define observable behavior.
+- Architecture docs define system/module boundaries.
+- Change design defines how one non-trivial change will be implemented.
+- Verification artifacts prove the contract.
+- Do not mix deep implementation detail into product specs.
 
-- `AGENTS.md` — workflow rules
-- `docs/specs/` — observable product behavior
-- `.ai/PROJECT.md` — detected project facts
-- `.ai/ARCHITECTURE.md` — system shape/boundaries
-- `.ai/DEPENDENCIES.md` — declared dependency evidence
-- `.ai/BASELINE.md` — local/reference boundary evidence
-- `.ai/RULES.md` — merged project/pack rules
-- `.ai/policy.json` — machine-readable guarded actions
-- `.ai/knowledge/` — reusable guidance with provenance
-- `.ai/memory/` — project-specific facts with provenance
-- `.ai/changes/` — change proposal/design/tasks/result
-- tests / `qa/` / `.ai/verification/` — verification evidence
+## Autonomous onboarding output
 
-Do not collapse these layers into one file.
+Full `init/onboard` should establish:
 
-## Adaptive rigor
+- concise root `AGENTS.md`
+- `docs/ARCHITECTURE.md`
+- `docs/DEVELOPMENT.md`
+- `docs/specs/`
+- `.ai/discovery/project-facts.json`
+- `.ai/discovery/architecture.json`
+- `.ai/discovery/dependency-graph.json`
+- `.ai/standards/index.json`
+- `.ai/research/agenda.json`
+- `.ai/policy.json`
+- baseline, knowledge and project memory
 
-Scale process to risk:
+Preserve existing user-authored content outside bootstrap managed blocks.
 
-- L0 trivial — implementation + focused verification
-- L1 small fix — short plan + implementation + verification
-- L2 feature — spec + plan + implementation + verification
-- L3 architectural — spec + design/ADR + plan + tests + verification
-- L4 migration/security/critical — impact + rollback/migration/security + staged verification
+Do not generate `.codex`, `.claude`, `.cursor`, or other tool-specific project files by default.
 
-Do not create unnecessary paperwork for trivial changes.
+## Retrieval-friendly instructions
+
+- One rule/fact per bullet or line.
+- Include exact paths for path-specific rules.
+- Use stable keywords in headings and bullets.
+- Keep root instruction files concise.
+- Move detailed explanations to linked/scoped docs.
+- Do not hide compatibility constraints in long prose.
+- Add scoped `AGENTS.md` files only when a subtree genuinely has different rules.
+
+## Research rule
+
+Research is selective, not ceremonial.
+
+Use official/version-matched primary sources when:
+
+- framework/version behavior is uncertain
+- official extension architecture changes a technical decision
+- a current tool/standard capability may have changed
+
+Do not apply latest-version documentation to a legacy target without matching evidence.
+
+Record material findings with source, version/date, claim, affected decision and confidence.
+
+If web access is unavailable, leave material unknowns unresolved instead of guessing.
 
 ## Brownfield rule
 
-Existing behavior and existing modifications are evidence.
-
 Before invasive changes inspect:
 
+- existing instructions/docs/specs
 - code and entry points
-- routes/APIs/state
-- dependencies and runtime constraints
+- dependency/runtime constraints
 - database/migrations
 - tests/QA
 - modules/plugins/extensions
 - core/vendor/generated boundaries
 - integrations/deployment
-- existing project-specific instructions
 - baseline/reference evidence when available
 
-Do not silently replace established conventions with bootstrap defaults.
-
-## Baseline rule
-
-A baseline/reference tree is only authoritative if its identity/version matches the target.
-
-Use:
-
-```bash
-python bootstrap.py baseline <target> --reference <reference>
-```
-
-to identify added, missing and modified files.
-
-Do not automatically assume that a framework's latest upstream release is the correct baseline for a legacy target.
+Existing modifications are evidence; do not silently replace them with bootstrap defaults.
 
 ## Extension/platform rule
 
-For modules, plugins, extensions and platform customizations:
+For modules/plugins/extensions:
 
-- detect host platform/version
+- detect host platform and version
 - prefer supported extension points over core edits
 - preserve install/upgrade/uninstall lifecycle
 - check permissions/data changes
 - preserve translations/language resources
-- verify package layout and host compatibility
+- verify packaging and host compatibility
 - classify existing core edits before changing them
 
-OpenCart/PrestaShop are packs, not global assumptions.
+OpenCart and PrestaShop are capability packs, not global assumptions.
 
-## Dependency rule
-
-Dependency manifests are compatibility contracts.
-
-Before adding/upgrading a dependency:
-
-- inspect current manifest and lockfile conventions
-- inspect declared runtime/toolchain constraints
-- understand public API or build impact
-- verify target compatibility
-
-The generated dependency graph is direct manifest evidence, not a complete runtime call graph.
-
-## Memory rule
-
-Project memory must preserve provenance.
-
-Use `memory-add` for manually verified facts.
-
-- Never store secrets.
-- Never turn guesses into durable facts.
-- Manual verified facts must not be silently overwritten by automated discovery.
-- Re-verify stale facts when the environment may have changed.
-
-## Knowledge rule
-
-Generic knowledge is weaker than project-specific evidence.
-
-Keep source/provenance on every knowledge entry. Do not silently inject unsourced “best practices” into project memory.
-
-## Policy/security rule
+## Policy/security
 
 Instructions are not a sandbox.
 
-Before guarded actions use `.ai/policy.json` and:
+Use `.ai/policy.json` / `policy-check` for guarded actions.
 
-```bash
-python bootstrap.py policy-check <target> read <path>
-python bootstrap.py policy-check <target> write <path>
-python bootstrap.py policy-check <target> execute "<command>"
-```
-
-Interpret results:
-
-- `allow` — policy did not block the action
-- `confirm` — obtain explicit approval / use guarded workflow
+- `allow` — proceed under normal workflow
+- `confirm` — require explicit guarded approval
 - `deny` — do not proceed
 
-Never copy secret values into specs, prompts, memory, logs, baseline output or generated AI context.
+Never copy secret values into specs, prompts, logs, memory, baseline output, research findings or generated AI context.
 
-Treat production writes, destructive commands, migrations and permission/security changes as high-risk.
+Treat production writes, destructive commands, migrations and security/permission changes as high-risk.
 
-## Verification rule
+## Project memory
 
-Verification must match capabilities.
+- Project memory must preserve provenance.
+- Never store secrets.
+- Never turn guesses into durable facts.
+- Manual verified facts must not be silently overwritten by auto-discovery.
+- Re-verify stale environment facts when they may have changed.
 
-Valid verification may include:
+## Adaptive rigor
+
+- L0 trivial — implementation + focused verification
+- L1 small fix — short plan + implementation + verification
+- L2 feature — spec + plan + implementation + verification
+- L3 architecture — spec + design/ADR + plan + tests + verification
+- L4 migration/security/critical — impact + rollback/migration/security + staged verification
+
+Do not create paperwork for trivial work.
+
+## Verification
+
+Verification must match the system capability:
 
 - browser/UI
 - API/backend
@@ -211,18 +192,7 @@ Valid verification may include:
 - database/migration
 - packaging
 - security
-- data-pipeline
+- pipeline
 - performance
 
-If behavior changes, update verification evidence in the same task when practical.
-
-## Writing style for product specs
-
-Specs should be:
-
-- short
-- explicit
-- product-level
-- behavior-oriented
-
-Avoid deep implementation detail unless it is necessary to preserve the product contract. Technical design belongs in architecture/change artifacts.
+Behavior changes should update verification evidence in the same task when practical.
