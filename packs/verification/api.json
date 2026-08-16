@@ -1,0 +1,9 @@
+{
+  "id": "verification/api",
+  "version": "1.1.0",
+  "kind": "verification",
+  "verification": [
+    "Verify request/response contracts, status/error behavior and authentication/authorization boundaries.",
+    "Verify backward compatibility when public API contracts change."
+  ]
+}
