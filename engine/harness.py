@@ -1,0 +1,274 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+from typing import Optional, Tuple
+
+from .baseline import compare as baseline_compare
+from .baseline import inventory as baseline_inventory
+from .baseline import render_baseline_md
+from .dependencies import dependency_graph, render_dependency_md
+from .discovery import discover
+from .knowledge import load_selected
+from .memory import add_manual, update_from_discovery
+from .packs import PackRegistry
+from .policy import build_policy, check as policy_check
+from .utils import read_json, write_json
+
+
+VERSION = "1.1.0"
+
+
+def build_context(target: Path, bootstrap_root: Path) -> dict:
+    facts = discover(target)
+    facts["bootstrap_version"] = VERSION
+    registry = PackRegistry(bootstrap_root)
+    pack_context = registry.resolve(facts["selected_packs"])
+    graph = dependency_graph(target)
+    policy = build_policy(pack_context, facts)
+    knowledge = load_selected(bootstrap_root, pack_context.get("knowledge_ids", []))
+    baseline = baseline_inventory(target, pack_context.get("protected_paths", []))
+    return {
+        "facts": facts,
+        "packs": pack_context,
+        "dependencies": graph,
+        "policy": policy,
+        "knowledge": knowledge,
+        "baseline": baseline,
+    }
+
+
+def init_target(target: Path, bootstrap_root: Path, force: bool = False) -> dict:
+    context = build_context(target, bootstrap_root)
+    ai = target / ".ai"
+    ai.mkdir(parents=True, exist_ok=True)
+
+    generated = {
+        ai / "manifest.yaml": render_manifest(context),
+        ai / "PROJECT.md": render_project_md(context),
+        ai / "ARCHITECTURE.md": render_architecture_md(context),
+        ai / "DEPENDENCIES.md": render_dependency_md(context["dependencies"]),
+        ai / "COMMANDS.md": render_commands_md(context["facts"]),
+        ai / "RULES.md": render_rules_md(context),
+        ai / "VERIFICATION.md": render_verification_md(context),
+        ai / "BASELINE.md": render_baseline_md(context["baseline"]),
+    }
+    for path, content in generated.items():
+        if force or not path.exists():
+            path.write_text(content, encoding="utf-8")
+
+    write_json(ai / "discovery" / "project-facts.json", context["facts"])
+    write_json(ai / "discovery" / "packs.json", context["packs"])
+    write_json(ai / "discovery" / "dependency-graph.json", context["dependencies"])
+    write_json(ai / "discovery" / "risks.json", context["facts"]["risks"])
+    write_json(ai / "policy.json", context["policy"])
+    write_json(ai / "knowledge" / "index.json", context["knowledge"])
+    write_json(ai / "baseline" / "inventory.json", context["baseline"])
+    update_from_discovery(ai / "memory" / "project-memory.json", context["facts"], context["packs"])
+
+    for folder in ["changes", "verification", "decisions"]:
+        (ai / folder).mkdir(exist_ok=True)
+
+    return {
+        "status": "ok",
+        "bootstrap_version": VERSION,
+        "generated": str(ai),
+        "selected_packs": context["packs"]["resolved_ids"],
+        "dependencies": context["dependencies"]["summary"],
+        "baseline": context["baseline"]["summary"],
+        "knowledge": context["knowledge"]["selected_ids"],
+    }
+
+
+def run_baseline(target: Path, bootstrap_root: Path, reference: Optional[Path] = None) -> dict:
+    context = build_context(target, bootstrap_root)
+    protected = context["packs"].get("protected_paths", [])
+    if reference is not None:
+        report = baseline_compare(target, reference, protected)
+        output = target / ".ai" / "baseline" / "diff.json"
+    else:
+        report = baseline_inventory(target, protected)
+        output = target / ".ai" / "baseline" / "inventory.json"
+    write_json(output, report)
+    (target / ".ai" / "BASELINE.md").write_text(render_baseline_md(report), encoding="utf-8")
+    return report
+
+
+def verify_target(target: Path, bootstrap_root: Path) -> Tuple[int, dict]:
+    ai = target / ".ai"
+    required = [
+        ai / "manifest.yaml", ai / "PROJECT.md", ai / "ARCHITECTURE.md",
+        ai / "DEPENDENCIES.md", ai / "RULES.md", ai / "VERIFICATION.md",
+        ai / "policy.json", ai / "discovery" / "project-facts.json",
+        ai / "discovery" / "packs.json", ai / "discovery" / "dependency-graph.json",
+        ai / "baseline" / "inventory.json", ai / "knowledge" / "index.json",
+        ai / "memory" / "project-memory.json",
+    ]
+    missing = [str(p.relative_to(target)) for p in required if not p.exists()]
+    invalid = []
+    for path in required:
+        if not path.exists() or path.suffix != ".json":
+            continue
+        try:
+            json.loads(path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            invalid.append({"path": str(path.relative_to(target)), "error": str(exc)})
+
+    warnings = []
+    facts = read_json(ai / "discovery" / "project-facts.json", {})
+    if facts and facts.get("bootstrap_version") != VERSION:
+        warnings.append(f"discovery was generated by bootstrap {facts.get('bootstrap_version')}, current is {VERSION}")
+    packs = read_json(ai / "discovery" / "packs.json", {})
+    virtual = [p["id"] for p in packs.get("loaded", []) if p.get("virtual")]
+    if virtual:
+        warnings.append("catalog-only packs have no detailed manifest: " + ", ".join(virtual))
+
+    result = {"ok": not missing and not invalid, "missing": missing, "invalid": invalid, "warnings": warnings}
+    return (0 if result["ok"] else 1), result
+
+
+def check_policy_target(target: Path, action: str, subject: str) -> dict:
+    policy = read_json(target / ".ai" / "policy.json", {})
+    if not policy:
+        return {"decision": "deny", "reason": "policy is missing; run init first"}
+    return policy_check(policy, action, subject)
+
+
+def add_memory_target(target: Path, key: str, value: str, source: str, confidence: float) -> dict:
+    path = target / ".ai" / "memory" / "project-memory.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    return add_manual(path, key, value, source, confidence)
+
+
+def render_manifest(context: dict) -> str:
+    facts = context["facts"]
+    value = {
+        "schema_version": 2,
+        "bootstrap_version": VERSION,
+        "mode": "brownfield" if facts["scan"]["files_scanned"] > 10 else "greenfield",
+        "selected_packs": context["packs"]["resolved_ids"],
+        "artifacts": {
+            "facts": ".ai/discovery/project-facts.json",
+            "packs": ".ai/discovery/packs.json",
+            "dependencies": ".ai/discovery/dependency-graph.json",
+            "baseline": ".ai/baseline/inventory.json",
+            "policy": ".ai/policy.json",
+            "knowledge": ".ai/knowledge/index.json",
+            "memory": ".ai/memory/project-memory.json",
+            "architecture": ".ai/ARCHITECTURE.md",
+            "commands": ".ai/COMMANDS.md",
+            "rules": ".ai/RULES.md",
+            "verification": ".ai/VERIFICATION.md",
+        },
+    }
+    return json.dumps(value, indent=2) + "\n"
+
+
+def render_project_md(context: dict) -> str:
+    facts = context["facts"]
+    langs = ", ".join(facts["languages"]) or "unknown"
+    frameworks = ", ".join(facts["frameworks"]) or "none detected"
+    versions = "\n".join(
+        f"- {name}: `{fact.get('value')}` ({fact.get('confidence', 0):.0%} confidence)"
+        for name, fact in facts["versions"].items()
+    ) or "- No explicit runtime constraints detected."
+    return f"""# Project Facts
+
+Generated by Universal AI Development Bootstrap {VERSION}.
+
+## Detected stack
+
+- Languages: {langs}
+- Frameworks/platforms: {frameworks}
+- Project types: {", ".join(facts["project_types"])}
+
+## Runtime/version evidence
+
+{versions}
+
+## Context artifacts
+
+Read `ARCHITECTURE.md`, `DEPENDENCIES.md`, `RULES.md`, `VERIFICATION.md`, `.ai/policy.json`, and project memory before non-trivial work.
+
+## Evidence rule
+
+Discovery is evidence, not absolute truth. Preserve confidence and provenance. A project-specific verified fact overrides generic bootstrap guidance.
+"""
+
+
+def render_architecture_md(context: dict) -> str:
+    facts = context["facts"]
+    graph = context["dependencies"]["summary"]
+    eps = "\n".join(f"- `{x}`" for x in facts["entry_points"]) or "- No canonical entry point detected."
+    return f"""# Architecture
+
+## Detected system shape
+
+Project types: {", ".join(facts["project_types"])}.
+
+## Entry points
+
+{eps}
+
+## Dependency boundary
+
+- Dependency manifests: {graph["manifest_count"]}
+- Direct dependencies: {graph["dependency_count"]}
+- Ecosystems: {", ".join(graph["ecosystems"]) or "none detected"}
+
+See `DEPENDENCIES.md` and `.ai/discovery/dependency-graph.json`.
+
+## Baseline boundary
+
+See `BASELINE.md` and `.ai/baseline/`. Protected paths are hypotheses from capability packs until confirmed against a project/version-specific reference.
+
+## Architecture rules
+
+- Keep product behavior in `docs/specs/`.
+- Keep technical design in architecture docs or `.ai/changes/<id>/design.md`.
+- Identify data ownership, public APIs, extension points, background jobs, generated/vendor/core code, and deployment boundaries before architectural changes.
+"""
+
+
+def render_commands_md(facts: dict) -> str:
+    lines = ["# Commands", "", "Detected commands are candidates. Verify environment and policy before production or destructive use.", ""]
+    for kind, commands in facts["commands"].items():
+        lines += [f"## {kind}", ""] + [f"- `{command}`" for command in commands] + [""]
+    if not facts["commands"]:
+        lines.append("No standard commands detected.")
+    return "\n".join(lines) + "\n"
+
+
+def render_rules_md(context: dict) -> str:
+    facts = context["facts"]
+    packs = context["packs"]
+    lines = [
+        "# Project Rules", "",
+        "## Universal rules", "",
+        "- Preserve existing behavior unless the active change explicitly alters it.",
+        "- Match detected target runtime compatibility; do not silently introduce newer syntax or APIs.",
+        "- Never copy secrets into specs, prompts, logs, memory, baseline output, or generated AI context.",
+        "- Product specs describe WHAT; architecture/change design describes HOW.",
+        "- Use `.ai/policy.json` and `policy-check` before protected/destructive actions.",
+        "", "## Capability-pack rules", "",
+    ]
+    for rule in packs.get("rules", []):
+        lines.append(f"- {rule}")
+    if not packs.get("rules"):
+        lines.append("- No detailed pack-specific rules loaded.")
+    lines += ["", "## Compatibility", ""]
+    lines += [f"- {x}" for x in packs.get("compatibility", [])] or ["- No additional compatibility rule loaded."]
+    lines += ["", "## Detected risks", ""]
+    lines += [f"- **{r['level']} / {r['kind']}**: {r['rule']}" for r in facts["risks"]] or ["- No special risk detected."]
+    return "\n".join(lines) + "\n"
+
+
+def render_verification_md(context: dict) -> str:
+    checks = context["packs"].get("verification", [])
+    lines = [
+        "# Verification Contract", "",
+        "Verification is selected by capabilities, not by a hard-coded web-only workflow.", "",
+    ]
+    lines += [f"- {x}" for x in checks] or ["- Use project-appropriate focused verification."]
+    lines += ["", "For high-risk changes also verify rollback/migration behavior, compatibility boundaries, permissions, and packaging/deployment where applicable."]
+    return "\n".join(lines) + "\n"

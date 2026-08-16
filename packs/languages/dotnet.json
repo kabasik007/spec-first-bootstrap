@@ -1,0 +1,7 @@
+{
+  "id": "languages/dotnet",
+  "version": "1.1.0",
+  "kind": "language",
+  "compatibility": ["Detect TargetFramework/SDK and project type before using newer .NET/C# APIs or language features."],
+  "knowledge_ids": ["runtime-compatibility", "dependency-evidence"]
+}

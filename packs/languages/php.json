@@ -1,6 +1,6 @@
 {
   "id": "languages/php",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "kind": "language",
   "compatibility": [
     "Support the target project's declared PHP runtime, including legacy runtimes when detected.",
@@ -14,5 +14,6 @@
   "verification": [
     "Syntax-check changed PHP files with a compatible PHP runtime when available.",
     "Run project-native tests or smoke checks rather than assuming PHPUnit exists."
-  ]
+  ],
+  "knowledge_ids": ["runtime-compatibility", "dependency-evidence"]
 }

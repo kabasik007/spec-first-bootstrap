@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/kabasik007/spec-first-bootstrap/schemas/memory.schema.json",
+  "title": "Project Memory",
+  "type": "object",
+  "required": ["schema_version", "facts"],
+  "properties": {
+    "schema_version": {"type": "integer"},
+    "facts": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["value", "confidence", "source", "observed_at", "last_seen"],
+        "properties": {
+          "value": {},
+          "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+          "source": {"type": "object"},
+          "observed_at": {"type": "string"},
+          "last_seen": {"type": "string"}
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

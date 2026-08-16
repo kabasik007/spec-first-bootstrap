@@ -9,20 +9,23 @@
     "version": {"type": "string"},
     "kind": {"enum": ["base", "language", "framework", "platform", "project-type", "verification", "deployment", "knowledge"]},
     "extends": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
-    "detect": {
-      "type": "object",
-      "properties": {
-        "files_any": {"type": "array", "items": {"type": "string"}},
-        "files_all": {"type": "array", "items": {"type": "string"}},
-        "dependencies_any": {"type": "array", "items": {"type": "string"}}
-      },
-      "additionalProperties": true
-    },
+    "detect": {"type": "object", "additionalProperties": true},
     "compatibility": {"type": "array", "items": {"type": "string"}},
     "protected_paths": {"type": "array", "items": {"type": "string"}},
     "rules": {"type": "array", "items": {"type": "string"}},
     "verification": {"type": "array", "items": {"type": "string"}},
-    "knowledge": {"type": "array", "items": {"type": "string", "format": "uri"}}
+    "knowledge": {"type": "array", "items": {"type": "string", "format": "uri"}},
+    "knowledge_ids": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "policy": {
+      "type": "object",
+      "properties": {
+        "deny_read": {"type": "array", "items": {"type": "string"}},
+        "deny_write": {"type": "array", "items": {"type": "string"}},
+        "confirm_write": {"type": "array", "items": {"type": "string"}},
+        "confirm_commands": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": true
+    }
   },
   "additionalProperties": true
 }

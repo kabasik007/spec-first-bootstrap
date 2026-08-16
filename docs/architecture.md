@@ -1,45 +1,108 @@
-# Universal Bootstrap Architecture
+# Bootstrap Architecture
 
-The bootstrap is intentionally split into layers so it can support unrelated stacks without becoming a giant framework-specific prompt.
+## Purpose
 
-## Pipeline
+Universal AI Development Bootstrap prepares arbitrary software repositories for safer AI-assisted development without binding the workflow to one language, framework, runtime generation or product type.
 
-```text
-Target repository
-  -> detector
-  -> project facts + confidence/evidence
-  -> architecture/risk discovery
-  -> capability pack resolver
-  -> project-specific .ai harness
-  -> agent workflow
-  -> verification
-```
-
-## Core principles
-
-1. **Detect before instructing.** Never assume framework, version, runtime, or project type from a prompt alone when the repository can provide evidence.
-2. **Compose, do not branch globally.** A repository may combine PHP + Node + Python + Docker + multiple frameworks.
-3. **Keep product and technical truth separate.** `docs/specs/` defines observable product behavior; `.ai/ARCHITECTURE.md` and change designs define implementation structure and boundaries.
-4. **Treat legacy as a supported state.** Old runtimes and modified framework cores are brownfield facts, not errors to normalize automatically.
-5. **Scale process by risk.** Small changes should remain lightweight; migrations and architectural changes require stronger design and verification.
-6. **Local-first by default.** Discovery and harness generation should work without network access. Network-backed knowledge or baseline comparison is an optional capability.
-7. **Evidence over guesswork.** Generated facts should retain confidence and evidence so agents know what must still be verified.
-
-## Generated target layout
+The design keeps six concerns separate:
 
 ```text
-.ai/
-  manifest.yaml
-  PROJECT.md
-  ARCHITECTURE.md
-  COMMANDS.md
-  RULES.md
-  discovery/
-    project-facts.json
-    risks.json
-  changes/
-  verification/
-  memory/
+product contract       docs/specs/
+technical context      .ai/ARCHITECTURE.md + discovery
+change design          .ai/changes/
+verification           tests / qa / .ai/verification/
+reusable knowledge     .ai/knowledge/
+project facts          .ai/memory/
 ```
 
-Future layers can add `baseline/`, `knowledge/`, richer dependency maps, policy enforcement, and pack-provided generators without changing the spec-first contract.
+## Engine layers
+
+```text
+bootstrap.py
+   │
+   ├─ engine/discovery.py
+   │    stack, runtime, framework, commands, risks
+   │
+   ├─ engine/packs.py
+   │    composable capability resolution
+   │
+   ├─ engine/dependencies.py
+   │    dependency-manifest graph
+   │
+   ├─ engine/baseline.py
+   │    inventory + optional reference diff
+   │
+   ├─ engine/policy.py
+   │    machine-readable guardrails + decision primitive
+   │
+   ├─ engine/knowledge.py
+   │    curated reusable guidance with provenance
+   │
+   ├─ engine/memory.py
+   │    project-specific durable facts with provenance
+   │
+   └─ engine/harness.py
+        orchestration + generated .ai artifacts
+```
+
+The engine uses only the Python standard library. Python is the bootstrap runtime, not a constraint on target repositories.
+
+## Evidence first
+
+Detectors record facts with confidence and evidence. Detected facts are hypotheses until project evidence confirms them.
+
+A target can be legacy by design. A modern bootstrap must not force a legacy target onto modern syntax, framework conventions or dependencies.
+
+## Capability composition
+
+A target can combine multiple capabilities:
+
+```text
+base/security
+languages/php
+languages/node
+frameworks/opencart
+frameworks/react
+project-types/extension-platform
+project-types/web-ui
+verification/extension
+verification/web
+```
+
+Pack inheritance (`extends`) is resolved before rules, protected paths, verification, knowledge and policy fragments are merged.
+
+Catalog-only packs are allowed so unknown or lightly modeled stacks still bootstrap successfully. Detailed manifests can be added incrementally.
+
+## Local-first baseline
+
+Baseline comparison accepts an explicit local reference tree. The core engine does not automatically fetch upstream releases because version identity is a correctness boundary.
+
+Network-enabled official baseline/document adapters can be added later as explicit capabilities.
+
+## Security model
+
+The bootstrap never claims that Markdown instructions are a security boundary.
+
+`.ai/policy.json` is machine-readable. `policy-check` provides an enforceable decision primitive that external agent hosts can call. Full OS/container sandboxing remains outside this repository.
+
+Secret-like files are skipped by baseline inventory and should never be copied into generated context.
+
+## Compatibility
+
+The CLI preserves v1.0 top-level discovery keys while adding v1.1 context fields.
+
+Generated manifest schema version is `2`.
+
+## Extension points
+
+Future layers can add:
+
+- source/import call graphs
+- database/schema graph
+- official baseline fetch adapters
+- official-document knowledge adapters
+- pack signing/version compatibility
+- host-level policy enforcement
+- IDE/Codex/Claude skill adapters
+- incremental discovery cache
+- monorepo workspace graphs

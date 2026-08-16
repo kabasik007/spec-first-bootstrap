@@ -1,0 +1,10 @@
+{
+  "id": "verification/extension",
+  "version": "1.1.0",
+  "kind": "verification",
+  "verification": [
+    "Verify installation, upgrade and uninstall behavior where supported.",
+    "Verify host-version/runtime compatibility, permissions, data changes, translations and package layout."
+  ],
+  "knowledge_ids": ["extension-lifecycle", "brownfield-boundaries"]
+}

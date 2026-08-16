@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "entries": [
+    {
+      "id": "runtime-compatibility",
+      "title": "Target runtime compatibility",
+      "summary": "The bootstrap runtime is not the target runtime. Derive syntax/API/toolchain constraints from project evidence and preserve legacy compatibility unless migration is explicit.",
+      "source": {"type": "bootstrap", "path": "AGENTS.md#universal-compatibility-rule"},
+      "confidence": 1.0
+    },
+    {
+      "id": "spec-architecture-separation",
+      "title": "Separate product contract from technical design",
+      "summary": "Product specs define observable behavior; architecture/change documents define implementation boundaries and design decisions.",
+      "source": {"type": "bootstrap", "path": "docs/architecture.md"},
+      "confidence": 1.0
+    },
+    {
+      "id": "brownfield-boundaries",
+      "title": "Brownfield boundary preservation",
+      "summary": "Existing core modifications, overrides and conventions are evidence. Classify them before normalizing or replacing them.",
+      "source": {"type": "bootstrap", "path": "AGENTS.md#brownfield-rule"},
+      "confidence": 1.0
+    },
+    {
+      "id": "secret-handling",
+      "title": "Secret handling",
+      "summary": "Secret values must not be copied into generated AI context, specs, memory, logs, baseline artifacts or prompts.",
+      "source": {"type": "bootstrap", "path": "AGENTS.md#policysecurity-rule"},
+      "confidence": 1.0
+    },
+    {
+      "id": "dependency-evidence",
+      "title": "Dependency manifests are evidence",
+      "summary": "Use declared dependency constraints and manifests to understand compatibility. A manifest graph is not a complete runtime call graph.",
+      "source": {"type": "bootstrap", "path": "docs/context-intelligence.md#dependency-graph"},
+      "confidence": 1.0
+    },
+    {
+      "id": "baseline-evidence",
+      "title": "Baseline comparison",
+      "summary": "A reference tree can identify added, missing and modified files, but the reference must match the target product/version before it is treated as authoritative.",
+      "source": {"type": "bootstrap", "path": "docs/context-intelligence.md#baseline-engine"},
+      "confidence": 1.0
+    },
+    {
+      "id": "extension-lifecycle",
+      "title": "Extension lifecycle safety",
+      "summary": "Modules/plugins/extensions should preserve host compatibility, install/upgrade/uninstall lifecycle, permissions, data changes, translations and packaging.",
+      "source": {"type": "bootstrap", "path": "AGENTS.md#extensionplatform-rule"},
+      "confidence": 1.0
+    },
+    {
+      "id": "migration-safety",
+      "title": "Migration safety",
+      "summary": "Schema/runtime migrations require impact analysis, forward/backward compatibility where relevant, rollback strategy and staged verification.",
+      "source": {"type": "bootstrap", "path": "AGENTS.md#adaptive-rigor"},
+      "confidence": 1.0
+    }
+  ]
+}

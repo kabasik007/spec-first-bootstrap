@@ -1,17 +1,18 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "packs": [
-    {"id":"base/spec-first","kind":"base","purpose":"Product behavior contracts and spec-first workflow."},
-    {"id":"base/architecture","kind":"base","purpose":"System boundaries, technical design and architecture discovery."},
-    {"id":"base/change-lifecycle","kind":"base","purpose":"Risk-scaled proposal/design/tasks/verification lifecycle."},
+    {"id":"base/spec-first","kind":"base","manifest":"base/spec-first.json","purpose":"Product behavior contracts and spec-first workflow."},
+    {"id":"base/architecture","kind":"base","manifest":"base/architecture.json","purpose":"System boundaries, technical design and architecture discovery."},
+    {"id":"base/change-lifecycle","kind":"base","manifest":"base/change-lifecycle.json","purpose":"Risk-scaled proposal/design/tasks/verification lifecycle."},
+    {"id":"base/security","kind":"base","manifest":"base/security.json","purpose":"Secret handling and machine-readable action policy."},
 
     {"id":"languages/php","kind":"language","manifest":"languages/php.json"},
-    {"id":"languages/python","kind":"language","purpose":"Python runtime, packaging, environment and test compatibility."},
-    {"id":"languages/node","kind":"language","purpose":"Node/JavaScript/TypeScript runtime, scripts and package-manager compatibility."},
-    {"id":"languages/go","kind":"language","purpose":"Go modules, build/test and toolchain compatibility."},
-    {"id":"languages/rust","kind":"language","purpose":"Cargo/workspace, compiler and feature compatibility."},
-    {"id":"languages/java","kind":"language","purpose":"JDK, Maven/Gradle and source/target compatibility."},
-    {"id":"languages/dotnet","kind":"language","purpose":".NET SDK/target framework/project compatibility."},
+    {"id":"languages/python","kind":"language","manifest":"languages/python.json"},
+    {"id":"languages/node","kind":"language","manifest":"languages/node.json"},
+    {"id":"languages/go","kind":"language","manifest":"languages/go.json"},
+    {"id":"languages/rust","kind":"language","manifest":"languages/rust.json"},
+    {"id":"languages/java","kind":"language","manifest":"languages/java.json"},
+    {"id":"languages/dotnet","kind":"language","manifest":"languages/dotnet.json"},
 
     {"id":"frameworks/opencart","kind":"framework","manifest":"frameworks/opencart.json"},
     {"id":"frameworks/prestashop","kind":"framework","manifest":"frameworks/prestashop.json"},
@@ -29,14 +30,14 @@
     {"id":"project-types/web-application","kind":"project-type","purpose":"Server-rendered or platform-backed web application."},
     {"id":"project-types/web-ui","kind":"project-type","purpose":"Browser user-interface surface."},
     {"id":"project-types/backend","kind":"project-type","purpose":"Backend/API/service application."},
-    {"id":"project-types/extension-platform","kind":"project-type","purpose":"Host platform with plugin/module/extension lifecycle."},
+    {"id":"project-types/extension-platform","kind":"project-type","manifest":"project-types/extension-platform.json","purpose":"Host platform with plugin/module/extension lifecycle."},
     {"id":"project-types/containerized","kind":"project-type","purpose":"Container-based runtime/build boundary."},
     {"id":"project-types/cli-or-service","kind":"project-type","purpose":"CLI, daemon, service or process entry point."},
     {"id":"project-types/desktop","kind":"project-type","purpose":"Desktop application lifecycle and packaging."},
     {"id":"project-types/generic-software","kind":"project-type","purpose":"Fallback for software that does not match a specialized type."},
 
-    {"id":"verification/web","kind":"verification","purpose":"Browser/UI smoke, regression, accessibility and network/console checks."},
-    {"id":"verification/api","kind":"verification","purpose":"API contracts, status/errors, auth, integration and schema checks."},
-    {"id":"verification/extension","kind":"verification","purpose":"Install/upgrade/uninstall, host compatibility, packaging and permission checks."}
+    {"id":"verification/web","kind":"verification","manifest":"verification/web.json","purpose":"Browser/UI smoke, regression, accessibility and network/console checks."},
+    {"id":"verification/api","kind":"verification","manifest":"verification/api.json","purpose":"API contracts, status/errors, auth, integration and schema checks."},
+    {"id":"verification/extension","kind":"verification","manifest":"verification/extension.json","purpose":"Install/upgrade/uninstall, host compatibility, packaging and permission checks."}
   ]
 }

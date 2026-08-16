@@ -1,0 +1,10 @@
+{
+  "id": "base/spec-first",
+  "version": "1.1.0",
+  "kind": "base",
+  "rules": [
+    "Define non-trivial observable behavior in product specs before implementation.",
+    "Update the product contract when observable behavior changes."
+  ],
+  "knowledge_ids": ["spec-architecture-separation"]
+}

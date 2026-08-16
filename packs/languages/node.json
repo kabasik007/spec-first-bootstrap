@@ -1,0 +1,8 @@
+{
+  "id": "languages/node",
+  "version": "1.1.0",
+  "kind": "language",
+  "compatibility": ["Detect package manager, engines.node and TypeScript/compiler targets before changing syntax or dependencies."],
+  "rules": ["Preserve lockfile/package-manager conventions and target Node/browser compatibility."],
+  "knowledge_ids": ["runtime-compatibility", "dependency-evidence"]
+}

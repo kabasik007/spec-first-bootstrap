@@ -1,0 +1,11 @@
+{
+  "id": "base/change-lifecycle",
+  "version": "1.1.0",
+  "kind": "base",
+  "extends": ["base/architecture"],
+  "rules": [
+    "Scale change artifacts to risk from L0 trivial through L4 migration/security/critical.",
+    "High-risk changes require impact, rollback/migration and staged verification."
+  ],
+  "knowledge_ids": ["migration-safety"]
+}

@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/kabasik007/spec-first-bootstrap/schemas/policy.schema.json",
+  "title": "Generated Bootstrap Policy",
+  "type": "object",
+  "required": ["schema_version", "enforcement", "deny_read", "deny_write", "confirm_write", "confirm_commands"],
+  "properties": {
+    "schema_version": {"type": "integer", "minimum": 1},
+    "enforcement": {"type": "string"},
+    "deny_read": {"type": "array", "items": {"type": "string"}},
+    "deny_write": {"type": "array", "items": {"type": "string"}},
+    "confirm_write": {"type": "array", "items": {"type": "string"}},
+    "confirm_commands": {"type": "array", "items": {"type": "string"}}
+  },
+  "additionalProperties": true
+}
