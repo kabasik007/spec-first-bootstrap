@@ -1,0 +1,15 @@
+{
+  "id": "base/security",
+  "version": "1.1.0",
+  "kind": "base",
+  "rules": [
+    "Do not place secret values in generated AI context.",
+    "Use policy-check or equivalent host enforcement before guarded actions."
+  ],
+  "knowledge_ids": ["secret-handling", "runtime-compatibility"],
+  "policy": {
+    "deny_read": [".env", ".env.*", "*.pem", "*.key", "credentials.json", "secrets.json", "**/secrets/**"],
+    "deny_write": [".git/"],
+    "confirm_commands": ["\\brm\\s+-rf\\b", "\\bDROP\\s+(TABLE|DATABASE)\\b", "\\bgit\\s+reset\\s+--hard\\b"]
+  }
+}
