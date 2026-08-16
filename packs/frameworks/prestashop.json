@@ -1,8 +1,8 @@
 {
   "id": "frameworks/prestashop",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "kind": "framework",
-  "extends": ["languages/php"],
+  "extends": ["languages/php", "project-types/extension-platform"],
   "compatibility": [
     "Detect the installed PrestaShop generation/version before applying conventions.",
     "Do not assume module APIs, Symfony integration, hooks, or override behavior are identical across versions."
@@ -17,5 +17,7 @@
     "Verify module installation and upgrade paths.",
     "Verify back-office and front-office behavior separately when both are affected.",
     "Verify target-version PHP compatibility."
-  ]
+  ],
+  "knowledge_ids": ["extension-lifecycle", "brownfield-boundaries", "baseline-evidence"],
+  "policy": {"confirm_write": ["classes/", "controllers/", "src/", "config/"]}
 }
