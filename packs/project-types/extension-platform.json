@@ -1,0 +1,7 @@
+{
+  "id": "project-types/extension-platform",
+  "version": "1.1.0",
+  "kind": "project-type",
+  "rules": ["Treat host platform core as a boundary; prefer supported extension points and classify existing core edits before changing them."],
+  "knowledge_ids": ["extension-lifecycle", "brownfield-boundaries"]
+}
