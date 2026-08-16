@@ -1,11 +1,15 @@
 {
   "id": "base/architecture",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "kind": "base",
   "extends": ["base/spec-first"],
   "rules": [
     "Keep technical design separate from product behavior specs.",
-    "Discover system boundaries, data ownership and public contracts before architectural changes."
+    "Discover system boundaries, data ownership and public contracts before architectural changes.",
+    "Keep core small and stable; feature-specific behavior belongs in explicit modules.",
+    "Keep UI/API/CLI/host adapters at the edge and external IO behind infrastructure adapters.",
+    "Prefer a modular monolith/internal module boundary over microservices until independent deployment, scale, fault isolation, data ownership or team ownership justifies a service boundary.",
+    "Preserve brownfield architecture unless the active change explicitly requires migration."
   ],
   "knowledge_ids": ["spec-architecture-separation", "dependency-evidence", "baseline-evidence"]
 }
