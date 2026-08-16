@@ -1,0 +1,8 @@
+{
+  "id": "languages/python",
+  "version": "1.1.0",
+  "kind": "language",
+  "compatibility": ["Detect requires-python, environment/tooling and package constraints before using newer syntax or stdlib APIs."],
+  "rules": ["Respect the target Python version and environment manager; do not assume the bootstrap Python version matches the target."],
+  "knowledge_ids": ["runtime-compatibility", "dependency-evidence"]
+}
