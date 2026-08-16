@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Universal Bootstrap Architecture Model",
+  "type": "object",
+  "required": ["schema_version", "mode", "style", "components", "principles", "microservices"],
+  "properties": {
+    "schema_version": {"type": "integer"},
+    "intent": {"type": "string"},
+    "mode": {"enum": ["greenfield", "brownfield"]},
+    "style": {
+      "type": "object",
+      "required": ["name", "reason"],
+      "properties": {
+        "name": {"type": "string"},
+        "reason": {"type": "string"}
+      }
+    },
+    "components": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "path", "role", "deployment", "source"]
+      }
+    },
+    "principles": {"type": "array", "items": {"type": "string"}},
+    "microservices": {"type": "object"},
+    "unknowns": {"type": "array", "items": {"type": "string"}}
+  }
+}
