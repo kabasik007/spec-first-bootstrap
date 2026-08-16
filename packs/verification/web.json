@@ -1,0 +1,10 @@
+{
+  "id": "verification/web",
+  "version": "1.1.0",
+  "kind": "verification",
+  "verification": [
+    "Verify critical user flows in a real browser when browser UI behavior changes.",
+    "Check uncaught console errors and failed core network requests.",
+    "Prefer behavior assertions over static-copy assertions."
+  ]
+}
