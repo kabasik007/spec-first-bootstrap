@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import List
+
+from .utils import rel, walk_files
 
 
 STANDARD_MARKERS = {
@@ -34,16 +35,12 @@ STANDARD_MARKERS = {
 
 def discover(target: Path, facts: dict) -> dict:
     markers = []
-    for name, meaning in STANDARD_MARKERS.items():
-        matches = list(target.rglob(name))
-        for path in matches[:5]:
-            try:
-                relative = path.relative_to(target).as_posix()
-            except ValueError:
-                relative = str(path)
-            if any(part in {".git", ".ai", "node_modules", "vendor", ".venv", "venv"} for part in path.parts):
-                continue
-            markers.append({"path": relative, "meaning": meaning})
+    files = walk_files(target)
+    marker_names = set(STANDARD_MARKERS)
+    for path in files:
+        if path.name not in marker_names:
+            continue
+        markers.append({"path": rel(target, path), "meaning": STANDARD_MARKERS[path.name]})
 
     commands = []
     for kind, values in facts.get("commands", {}).items():
