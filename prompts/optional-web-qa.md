@@ -1,15 +1,16 @@
-This project has a browser UI.
+This target project has a browser UI.
 
 Use this bootstrap repository as the reference:
 
-https://github.com/potapenko/spec-first-bootstrap
+https://github.com/kabasik007/spec-first-bootstrap
 
-Assume the spec-first bootstrap is already installed in this project.
+Assume the universal bootstrap harness is already installed and browser/UI verification was selected as an appropriate capability.
 
-Add the optional browser-QA layer for this project.
+Read:
 
-Read these files from the bootstrap repository first:
-
+- `.ai/PROJECT.md`
+- `.ai/ARCHITECTURE.md`
+- `.ai/RULES.md`
 - `qa/README.md`
 - `qa/web/README.md`
 - `qa/web/AGENTS.snippet.md`
@@ -20,11 +21,9 @@ Add or adapt:
 2. smoke vs regression vs experimental guidance
 3. report and bug templates
 4. rules for when a browser QA case is required
-5. a simple spec-to-QA mapping approach
-6. the `qa/web/AGENTS.snippet.md` routing block in this project's `AGENTS.md`
+5. spec-to-QA mapping
+6. the `qa/web/AGENTS.snippet.md` routing block in the target `AGENTS.md`
 
-Keep this QA layer optional.
+Keep browser QA optional. Prefer DOM-checkable behavior, real-browser verification, console-error checks and core network-failure checks.
 
-Do not change product code.
-
-Do not assume browser QA is appropriate for non-web projects.
+Do not change product code while installing the QA layer, and do not apply this pack to non-browser products.

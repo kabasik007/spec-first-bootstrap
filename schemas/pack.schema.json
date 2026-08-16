@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/kabasik007/spec-first-bootstrap/schemas/pack.schema.json",
+  "title": "Universal Bootstrap Capability Pack",
+  "type": "object",
+  "required": ["id", "version", "kind"],
+  "properties": {
+    "id": {"type": "string", "pattern": "^[a-z0-9._-]+/[a-z0-9._-]+$"},
+    "version": {"type": "string"},
+    "kind": {"enum": ["base", "language", "framework", "platform", "project-type", "verification", "deployment", "knowledge"]},
+    "extends": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "detect": {
+      "type": "object",
+      "properties": {
+        "files_any": {"type": "array", "items": {"type": "string"}},
+        "files_all": {"type": "array", "items": {"type": "string"}},
+        "dependencies_any": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": true
+    },
+    "compatibility": {"type": "array", "items": {"type": "string"}},
+    "protected_paths": {"type": "array", "items": {"type": "string"}},
+    "rules": {"type": "array", "items": {"type": "string"}},
+    "verification": {"type": "array", "items": {"type": "string"}},
+    "knowledge": {"type": "array", "items": {"type": "string", "format": "uri"}}
+  },
+  "additionalProperties": true
+}

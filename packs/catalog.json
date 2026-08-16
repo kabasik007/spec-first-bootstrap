@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "packs": [
+    {"id":"base/spec-first","kind":"base","purpose":"Product behavior contracts and spec-first workflow."},
+    {"id":"base/architecture","kind":"base","purpose":"System boundaries, technical design and architecture discovery."},
+    {"id":"base/change-lifecycle","kind":"base","purpose":"Risk-scaled proposal/design/tasks/verification lifecycle."},
+
+    {"id":"languages/php","kind":"language","manifest":"languages/php.json"},
+    {"id":"languages/python","kind":"language","purpose":"Python runtime, packaging, environment and test compatibility."},
+    {"id":"languages/node","kind":"language","purpose":"Node/JavaScript/TypeScript runtime, scripts and package-manager compatibility."},
+    {"id":"languages/go","kind":"language","purpose":"Go modules, build/test and toolchain compatibility."},
+    {"id":"languages/rust","kind":"language","purpose":"Cargo/workspace, compiler and feature compatibility."},
+    {"id":"languages/java","kind":"language","purpose":"JDK, Maven/Gradle and source/target compatibility."},
+    {"id":"languages/dotnet","kind":"language","purpose":".NET SDK/target framework/project compatibility."},
+
+    {"id":"frameworks/opencart","kind":"framework","manifest":"frameworks/opencart.json"},
+    {"id":"frameworks/prestashop","kind":"framework","manifest":"frameworks/prestashop.json"},
+    {"id":"frameworks/laravel","kind":"framework","purpose":"Laravel application conventions and runtime compatibility."},
+    {"id":"frameworks/symfony","kind":"framework","purpose":"Symfony bundle/service/console/application conventions."},
+    {"id":"frameworks/wordpress","kind":"framework","purpose":"WordPress plugin/theme/core-boundary conventions."},
+    {"id":"frameworks/django","kind":"framework","purpose":"Django application/settings/migration conventions."},
+    {"id":"frameworks/fastapi","kind":"framework","purpose":"FastAPI routing/schema/service conventions."},
+    {"id":"frameworks/flask","kind":"framework","purpose":"Flask application/blueprint/service conventions."},
+    {"id":"frameworks/react","kind":"framework","purpose":"React component/state/build conventions."},
+    {"id":"frameworks/vue","kind":"framework","purpose":"Vue component/state/build conventions."},
+    {"id":"frameworks/nextjs","kind":"framework","purpose":"Next.js routing/rendering/runtime conventions."},
+    {"id":"frameworks/electron","kind":"framework","purpose":"Electron main/renderer/preload/security boundaries."},
+
+    {"id":"project-types/web-application","kind":"project-type","purpose":"Server-rendered or platform-backed web application."},
+    {"id":"project-types/web-ui","kind":"project-type","purpose":"Browser user-interface surface."},
+    {"id":"project-types/backend","kind":"project-type","purpose":"Backend/API/service application."},
+    {"id":"project-types/extension-platform","kind":"project-type","purpose":"Host platform with plugin/module/extension lifecycle."},
+    {"id":"project-types/containerized","kind":"project-type","purpose":"Container-based runtime/build boundary."},
+    {"id":"project-types/cli-or-service","kind":"project-type","purpose":"CLI, daemon, service or process entry point."},
+    {"id":"project-types/desktop","kind":"project-type","purpose":"Desktop application lifecycle and packaging."},
+    {"id":"project-types/generic-software","kind":"project-type","purpose":"Fallback for software that does not match a specialized type."},
+
+    {"id":"verification/web","kind":"verification","purpose":"Browser/UI smoke, regression, accessibility and network/console checks."},
+    {"id":"verification/api","kind":"verification","purpose":"API contracts, status/errors, auth, integration and schema checks."},
+    {"id":"verification/extension","kind":"verification","purpose":"Install/upgrade/uninstall, host compatibility, packaging and permission checks."}
+  ]
+}

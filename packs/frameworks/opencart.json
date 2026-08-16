@@ -1,0 +1,21 @@
+{
+  "id": "frameworks/opencart",
+  "version": "1.0.0",
+  "kind": "framework",
+  "extends": ["languages/php"],
+  "compatibility": [
+    "Detect the installed OpenCart generation/version before applying conventions.",
+    "Do not assume OpenCart 2.x, 3.x, or 4.x layouts are interchangeable."
+  ],
+  "protected_paths": ["system/", "catalog/", "admin/"],
+  "rules": [
+    "Prefer documented extension points, events, modifications, modules, themes, and overrides over core edits.",
+    "If the project already contains core modifications, classify them as brownfield facts rather than silently normalizing them.",
+    "Preserve install/uninstall lifecycle, permissions, language resources, database compatibility, and packaging layout for extension work."
+  ],
+  "verification": [
+    "Verify install/upgrade/uninstall behavior for extension changes.",
+    "Verify admin and catalog behavior separately when both surfaces are affected.",
+    "Verify target-version PHP compatibility."
+  ]
+}

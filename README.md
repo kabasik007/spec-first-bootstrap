@@ -1,256 +1,339 @@
-# Spec-First Bootstrap for AI-Assisted Projects
+# Universal AI Development Bootstrap
 
-## Start here
+A local-first, spec-first bootstrap for preparing **any software repository** for AI-assisted development.
 
-Open your real project in Codex, Claude Code, or another coding agent and paste
-this prompt first:
+It does not assume PHP, JavaScript, Python, OpenCart, PrestaShop, a browser UI, or a modern stack. It inspects the target repository first, records evidence, composes capability packs, and generates project-specific AI development context.
 
-Step 1: set up spec-first development
+> Detect first. Specify behavior. Respect architecture. Change safely. Verify with evidence.
 
-```text
-Use https://github.com/potapenko/spec-first-bootstrap as the reference and set up this project for spec-first development.
+## What changed
 
-Read the bootstrap repository first. Add or adapt the needed AGENTS.md, the docs/specs README and template layer, and prompts. If this is an existing project, do brownfield discovery and create project-specific first-pass specs before changing implementation code.
-```
-
-Optional step 2: add browser QA for a web UI project
+The original project was a lightweight spec-first starter pack. The repository now keeps that useful core and adds an executable bootstrap engine around it.
 
 ```text
-Use https://github.com/potapenko/spec-first-bootstrap as the reference and add the optional browser-QA layer to this web UI project.
-
-Assume the spec-first bootstrap from step 1 is already installed. Read qa/README.md, qa/web/README.md, and qa/web/AGENTS.snippet.md from the bootstrap repository. Add or adapt the qa/web files for this project, and merge the qa/web/AGENTS.snippet.md routing block into the project's AGENTS.md so browser-QA instructions load automatically. Keep browser QA optional and do not change product code.
+Target repository
+      ↓
+Project Detector
+      ↓
+Project Facts + evidence/confidence
+      ↓
+Architecture / command / risk discovery
+      ↓
+Composable Capability Packs
+      ↓
+Project-specific .ai/ harness
+      ↓
+Spec → design → implementation → verification
 ```
 
-That is the normal setup path. Start with step 1. Run step 2 only when the
-project has a browser UI and you want browser QA artifacts.
+The old rule remains important:
 
-## Why this exists
+- `AGENTS.md` defines how agents work
+- `docs/specs/` defines product behavior
+- tests / `qa/` / `.ai/verification/` define verification evidence
 
-A lot of AI coding failures are not coding failures.
-They happen earlier, when product behavior was never made explicit.
-This repo gives the agent a simple place to keep that truth before code starts.
+Technical architecture is now a **separate layer**, not something stuffed into feature specs.
 
-**Do not start with code. Start with a spec.**
+## Quick start
 
-## What the agent should do
+Requires Python 3.9+ only for running the bootstrap engine. **This does not constrain the target project.** The target may use PHP 5.x/7.x/8.x, legacy frameworks, Node, Python, Java, .NET, Go, Rust, or mixed stacks.
 
-The agent should:
+From this repository:
 
-- read this bootstrap repository first
-- preserve existing project-specific agent instructions
-- add or adapt `AGENTS.md`
-- add the `docs/specs/` README and template layer
-- add useful prompts from `prompts/`
-- add `qa/web` only in the optional browser-QA step
-- create a product map, spec backlog, or project-specific first-pass specs
-  before implementation work starts
+```bash
+python bootstrap.py detect /path/to/project
+python bootstrap.py init /path/to/project
+python bootstrap.py verify /path/to/project
+```
 
-This is not just for browser apps. The same model works for web, backend, API,
-CLI, data pipelines, internal tools, and other software projects. Browser QA is
-optional.
+On Windows:
 
-This bootstrap did not come out of theory. It was extracted from several
-months of work on four internal projects behind
-[`playphrase.me`](https://playphrase.me), then cleaned up into a small public
-setup.
+```powershell
+python bootstrap.py detect D:\projects\my-app
+python bootstrap.py init D:\projects\my-app
+```
 
-If you want the broader context behind this workflow, the main ideas are also
-written up in a short article
-[here](https://www.patreon.com/posts/spec-first-or-ai-155606468?utm_medium=clipboard_copy&utm_source=copyLink&utm_campaign=postshare_creator&utm_content=join_link).
+`detect` does not modify the target. `init` creates or updates the bootstrap harness under `.ai/`. Existing generated top-level files are preserved unless `--force` is used; discovery facts are refreshed.
 
-## What this is for
-
-Use this repository in either of these situations:
-
-- you are starting a new project and want spec-first work from day one
-- you already have a working project and want to migrate it to a spec-first
-  workflow
-
-Included:
-
-- a minimal public `AGENTS.md`
-- a product-spec layer under `docs/specs/`
-- a reusable feature spec template
-- an example spec under `examples/`
-- prompt files for greenfield and brownfield adoption
-- an optional browser-QA starter pack for web UI projects
-
-## Three layers
-
-Instead of keeping product truth scattered across code and chat history, this
-workflow keeps three separate layers:
-
-1. `docs/specs/` - product truth
-2. implementation - code that follows the contract
-3. `qa/` - verification evidence when the project needs it
-
-The rules are simple:
-
-- context should live in specs, not only in code
-- code should implement the contract
-- QA should verify the contract when the project needs QA artifacts
-
-## Two common scenarios
-
-### Greenfield project
-
-Use this when the project is new or mostly empty.
-
-The agent should:
-
-- set up the spec-first workflow in the new project
-- create the initial product-spec structure
-- propose the first specs that should exist before feature code
-
-Reference prompt:
-
-- [`prompts/greenfield-bootstrap.md`](prompts/greenfield-bootstrap.md)
-
-### Brownfield project
-
-Use this when the project already exists and you want to retrofit specs.
-
-The agent should:
-
-- analyze the current codebase
-- extract product behavior from code, routes, state, tests, UI flows, and docs
-- ask for clarification where product intent is unclear
-- generate first-pass specs for the most important product areas
-
-In practice, brownfield migration usually means:
-
-1. map the product
-2. build a spec backlog
-3. generate first-pass specs
-4. review unknowns and conflicts
-5. only then start changing code
-
-Reference prompts:
-
-- [`prompts/brownfield-discovery.md`](prompts/brownfield-discovery.md)
-- [`prompts/brownfield-interview.md`](prompts/brownfield-interview.md)
-- [`prompts/generate-first-specs.md`](prompts/generate-first-specs.md)
-
-## Minimal workflow
-
-Use this workflow for non-trivial work:
-
-1. Clarify the product goal.
-2. Create or update a spec.
-3. Review behavior, invariants, and edge cases.
-4. Implement against the spec.
-5. Add or update verification artifacts if the project needs them.
-
-## Optional web QA layer
-
-Browser QA is **optional**.
-
-Use it if your project has a browser UI and you want a lightweight structure
-for smoke checks, regression cases, and run reports.
-
-The optional web QA pack assumes Playwright-style real-browser checks.
-
-Do not treat browser QA as mandatory for every project. Many projects are
-better served by API verification, CLI verification, integration testing,
-operator runbooks, or other project-specific checks.
-
-If you do have a browser UI, this repo includes a compact starter pack under:
-
-- [`qa/web/README.md`](qa/web/README.md)
-- [`qa/web/AGENTS.snippet.md`](qa/web/AGENTS.snippet.md)
-
-And a matching prompt:
-
-- [`prompts/optional-web-qa.md`](prompts/optional-web-qa.md)
-
-## Prompt pack
-
-The default setup prompt above is usually enough.
-
-The files under [`prompts/`](prompts/) are follow-up prompts for specific
-situations:
-
-- `greenfield-bootstrap.md`
-- `brownfield-discovery.md`
-- `brownfield-interview.md`
-- `generate-first-specs.md`
-- `optional-web-qa.md`
-- `day-to-day-spec-first.md`
-
-<details>
-<summary>Manual install fallback</summary>
-
-Use this only if your agent cannot fetch or inspect the GitHub repository.
-
-Copy these into the target project:
-
-Required:
-
-- `AGENTS.md`
-- `docs/specs/README.md`
-- `docs/specs/templates/`
-
-Recommended:
-
-- `prompts/`
-
-Optional:
-
-- `qa/`
-
-Reference only, not installed as project specs:
-
-- `examples/`
-
-If you copy `qa/`, also add the optional browser-QA routing block from:
-
-- `qa/web/AGENTS.snippet.md`
-
-Without that extra block in the project's `AGENTS.md`, the agent may not load
-the QA instructions automatically.
-
-After copying, ask the agent to work from the files already inside the project:
+## Generated target structure
 
 ```text
-Read AGENTS.md and docs/specs/README.md in this project first.
-
-This is a brownfield project. Generate project-specific first-pass specs before changing implementation code.
+.ai/
+├── manifest.yaml
+├── PROJECT.md
+├── ARCHITECTURE.md
+├── COMMANDS.md
+├── RULES.md
+├── discovery/
+│   ├── project-facts.json
+│   └── risks.json
+├── changes/
+├── verification/
+└── memory/
 ```
 
-</details>
+The existing product-spec layer remains:
 
-## Suggested repository structure
+```text
+docs/specs/
+├── README.md
+├── templates/
+│   └── feature-spec.md
+└── features/
+```
+
+## Universal detection
+
+The first engine version can recognize common evidence for:
+
+### Languages / runtimes
+
+- PHP
+- Python
+- Node / JavaScript / TypeScript
+- Go
+- Rust
+- Java
+- .NET
+
+### Frameworks / platforms
+
+- OpenCart
+- PrestaShop
+- Laravel
+- Symfony
+- WordPress
+- Django
+- FastAPI
+- Flask
+- React
+- Vue
+- Next.js
+- Electron
+
+Unknown stacks still work through generic packs. Detection is intentionally extensible; a framework is never supposed to become a global assumption.
+
+## Runtime compatibility is a target fact
+
+A central rule of this project is:
+
+> **Never upgrade syntax merely because the bootstrap engine itself is modern.**
+
+If a target repository supports PHP 5.6, that compatibility becomes a project constraint. If it supports PHP 7.4 or PHP 8.3, those are different constraints. The same principle applies to Python, Node, Java, .NET, database versions, framework generations, browser targets, and operating systems.
+
+For example, the PHP capability pack explicitly tells the agent to inspect Composer/platform constraints before introducing language syntax.
+
+## Capability packs
+
+Universal behavior comes from composition rather than a giant switch statement.
+
+Example legacy commerce target:
+
+```text
+base/spec-first
+base/architecture
+base/change-lifecycle
+languages/php
+frameworks/opencart
+project-types/web-application
+project-types/extension-platform
+verification/web
+verification/extension
+```
+
+Example modern application:
+
+```text
+base/spec-first
+base/architecture
+languages/python
+languages/node
+frameworks/fastapi
+frameworks/react
+project-types/backend
+project-types/web-ui
+project-types/containerized
+verification/api
+verification/web
+```
+
+A repository can select many packs at once.
+
+See [`packs/README.md`](packs/README.md) and [`schemas/pack.schema.json`](schemas/pack.schema.json).
+
+## Brownfield is a first-class mode
+
+Existing applications are not treated as failed greenfield projects.
+
+The bootstrap should discover before recommending change:
+
+- languages and runtime constraints
+- frameworks/platforms and versions
+- project types and system shape
+- commands and build/test entry points
+- code and module boundaries
+- framework/core/vendor/generated zones
+- migrations and persistence risks
+- integrations and deployment boundaries
+- existing tests and QA
+- known unknowns
+
+Discovery output includes evidence and confidence where possible. Agents should verify low-confidence facts before risky changes.
+
+## Modules, plugins, and extensions
+
+Extension development has different constraints from standalone application development.
+
+When an extension platform is detected, the workflow should pay attention to:
+
+- host platform and version
+- extension/module type
+- lifecycle: install / upgrade / uninstall
+- events, hooks, services, overrides, modification systems
+- permissions
+- database changes
+- translations/languages
+- package layout
+- host compatibility
+- core-protection boundaries
+
+OpenCart and PrestaShop are included as initial packs, but they are examples of the architecture — not hard-coded product priorities.
+
+## Product specs vs architecture
+
+Keep these separate:
+
+```text
+docs/specs/          WHAT observable behavior must do
+.ai/ARCHITECTURE.md  HOW the system is structured / bounded
+.ai/changes/...      HOW a particular non-trivial change will be made
+verification/tests   HOW the contract is checked
+```
+
+The existing feature template remains intentionally product-level:
+
+- Goal
+- Scope
+- Non-goals
+- User-visible behavior
+- Invariants
+- Edge cases and failure policy
+- Route / state / data implications
+- Verification mapping
+
+## Adaptive change lifecycle
+
+Not every CSS tweak needs an architecture document.
+
+Use risk-scaled rigor:
+
+```text
+L0 trivial      → implementation + focused verification
+L1 small fix    → short plan + implementation + verification
+L2 feature      → spec + plan + implementation + verification
+L3 architecture → spec + design/ADR + plan + tests + verification
+L4 critical     → impact + rollback/migration/security + staged verification
+```
+
+See [`templates/change/README.md`](templates/change/README.md).
+
+## Verification is not browser-only
+
+The browser QA starter pack remains useful, but it is optional.
+
+The capability model is intended to support verification packs for:
+
+- browser/UI
+- API/backend
+- CLI
+- desktop
+- extension/module install/upgrade/uninstall
+- database/migrations
+- integrations
+- packaging
+- security
+- data pipelines
+- performance
+
+Use verification that matches the system.
+
+## Security and risk boundaries
+
+Generated rules include universal safeguards:
+
+- never copy secrets into AI-generated context
+- treat framework core/vendor/generated areas as boundaries
+- respect target runtime compatibility
+- analyze migrations separately
+- preserve existing behavior unless the active change intentionally alters it
+- prefer extension mechanisms over invasive platform edits
+
+A future policy layer can mechanically enforce filesystem, command, database, and secret permissions; the manifest and pack model are designed to accommodate that without changing the spec-first core.
+
+## Optional future layers
+
+The architecture intentionally leaves room for:
+
+```text
+.ai/baseline/   official release / framework baseline comparison
+.ai/knowledge/  curated documentation with provenance
+.ai/memory/     verified project facts and learned conventions
+```
+
+These should be local-first and evidence-based. Network access should be an explicit enhancement for official documentation or official baselines, not a requirement for ordinary discovery.
+
+## Repository structure
 
 ```text
 .
+├── bootstrap.py
 ├── AGENTS.md
-├── README.md
 ├── docs/
+│   ├── architecture.md
 │   └── specs/
-│       ├── README.md
-│       ├── templates/
-│       │   └── feature-spec.md
-│       └── features/
-│           └── <project-feature>.md
-├── examples/
-│   └── favorites-spec.md
-├── prompts/
+├── packs/
 │   ├── README.md
-│   └── *.md
-└── qa/
-    ├── README.md
-    └── web/
-        └── ...
+│   ├── languages/
+│   └── frameworks/
+├── schemas/
+│   └── pack.schema.json
+├── templates/
+│   └── change/
+├── prompts/
+├── qa/
+├── examples/
+└── tests/
 ```
 
-## Included files
+## For coding agents
 
-- `AGENTS.md` - minimal workflow rules for agents
-- `docs/specs/README.md` - how the spec layer works
-- `docs/specs/templates/feature-spec.md` - reusable template
-- `examples/favorites-spec.md` - example production-style spec for reference
-- `prompts/` - ready-to-send prompts for setup and migration
-- `qa/web/` - optional browser-QA starter pack for web UI projects
+If this repository is available locally, prefer running the engine instead of asking the agent to reproduce the bootstrap from memory:
+
+```text
+Read this repository's AGENTS.md and docs/architecture.md.
+Run `python bootstrap.py detect <target>` first.
+Review the detected facts and risks.
+Then run `python bootstrap.py init <target>` to generate the target-specific harness.
+For brownfield work, inspect the generated discovery output before changing implementation code.
+```
+
+If the engine cannot be run, the files under `prompts/` remain a manual fallback.
+
+## Design goals
+
+- universal rather than framework-bound
+- useful for greenfield and brownfield
+- useful for applications, libraries, services, modules, plugins, extensions, CLIs, desktop tools, workers, and pipelines
+- local-first
+- evidence-driven
+- compatible with legacy projects
+- small dependency surface
+- composable instead of monolithic
+- strict enough for risky work without becoming bureaucracy for trivial changes
+
+## Architecture details
+
+Read [`docs/architecture.md`](docs/architecture.md).
 
 ## License
 
