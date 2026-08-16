@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import shutil
 from pathlib import Path
 
@@ -14,6 +13,14 @@ START = "<!-- universal-bootstrap:start -->"
 END = "<!-- universal-bootstrap:end -->"
 
 
+def _managed_section(generated: str) -> str:
+    if START in generated and END in generated:
+        _, rest = generated.split(START, 1)
+        body, _ = rest.split(END, 1)
+        return START + body + END + "\n"
+    return START + "\n" + generated.strip() + "\n" + END + "\n"
+
+
 def _managed_update(path: Path, generated: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     generated = generated.strip() + "\n"
@@ -25,9 +32,7 @@ def _managed_update(path: Path, generated: str) -> None:
     if START in existing and END in existing:
         before, rest = existing.split(START, 1)
         _, after = rest.split(END, 1)
-        managed = generated
-        if START not in managed or END not in managed:
-            managed = START + "\n" + managed + END + "\n"
+        managed = _managed_section(generated)
         path.write_text(before.rstrip() + "\n\n" + managed + after.lstrip(), encoding="utf-8")
         return
 
