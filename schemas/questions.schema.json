@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/kabasik007/spec-first-bootstrap/schemas/questions.schema.json",
+  "title": "Bootstrap Blocking Questions",
+  "type": "object",
+  "required": ["schema_version", "status", "ready_for_implementation", "blocking_count", "blocking", "advisory"],
+  "properties": {
+    "schema_version": {"type": "integer", "minimum": 1},
+    "status": {"enum": ["blocked", "ready"]},
+    "ready_for_implementation": {"type": "boolean"},
+    "blocking_count": {"type": "integer", "minimum": 0},
+    "blocking": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "category", "memory_key", "question", "why", "options", "evidence", "scope", "status"],
+        "properties": {
+          "id": {"type": "string"},
+          "category": {"type": "string"},
+          "memory_key": {"type": "string"},
+          "question": {"type": "string"},
+          "why": {"type": "string"},
+          "scope": {"type": "string"},
+          "status": {"const": "blocking"},
+          "evidence": {"type": "array", "items": {"type": "string"}},
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["value", "label"],
+              "properties": {
+                "value": {"type": "string"},
+                "label": {"type": "string"}
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "advisory": {"type": "array"},
+    "ask_policy": {"type": "object"}
+  },
+  "additionalProperties": true
+}
