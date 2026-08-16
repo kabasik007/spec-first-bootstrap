@@ -15,12 +15,14 @@ from .memory import add_manual, update_from_discovery
 from .onboarding import apply_onboarding
 from .packs import PackRegistry
 from .policy import build_policy, check as policy_check
+from .questions import build_questions
 from .research import build_agenda
+from .roadmap import build_roadmap
 from .standards import discover as discover_standards
 from .utils import read_json, write_json
 
 
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 
 
 def build_context(target: Path, bootstrap_root: Path, intent: str = "") -> dict:
@@ -35,7 +37,9 @@ def build_context(target: Path, bootstrap_root: Path, intent: str = "") -> dict:
     architecture = synthesize(target, facts, graph, intent)
     standards = discover_standards(target, facts)
     research = build_agenda(facts, architecture, intent)
-    return {
+    memory = read_json(target / ".ai" / "memory" / "project-memory.json", {"schema_version": 1, "facts": {}})
+    questions = build_questions(target, facts, graph, architecture, memory, intent)
+    context = {
         "facts": facts,
         "packs": pack_context,
         "dependencies": graph,
@@ -45,7 +49,11 @@ def build_context(target: Path, bootstrap_root: Path, intent: str = "") -> dict:
         "architecture": architecture,
         "standards": standards,
         "research": research,
+        "memory": memory,
+        "questions": questions,
     }
+    context["roadmap"] = build_roadmap(context)
+    return context
 
 
 def init_target(
@@ -80,12 +88,14 @@ def init_target(
     write_json(ai / "discovery" / "risks.json", context["facts"]["risks"])
     write_json(ai / "standards" / "index.json", context["standards"])
     write_json(ai / "research" / "agenda.json", context["research"])
+    write_json(ai / "questions" / "blocking.json", context["questions"])
+    write_json(ai / "planning" / "roadmap.json", context["roadmap"])
     write_json(ai / "policy.json", context["policy"])
     write_json(ai / "knowledge" / "index.json", context["knowledge"])
     write_json(ai / "baseline" / "inventory.json", context["baseline"])
     update_from_discovery(ai / "memory" / "project-memory.json", context["facts"], context["packs"])
 
-    for folder in ["changes", "verification", "decisions", "research", "standards"]:
+    for folder in ["changes", "verification", "decisions", "research", "standards", "questions", "planning"]:
         (ai / folder).mkdir(exist_ok=True)
 
     onboarding = None
@@ -98,6 +108,9 @@ def init_target(
         "generated": str(ai),
         "intent": intent.strip(),
         "architecture_style": context["architecture"]["style"]["name"],
+        "ready_for_implementation": context["questions"]["ready_for_implementation"],
+        "blocking_questions": context["questions"]["blocking_count"],
+        "roadmap_state": context["roadmap"]["readiness"]["state"],
         "selected_packs": context["packs"]["resolved_ids"],
         "dependencies": context["dependencies"]["summary"],
         "baseline": context["baseline"]["summary"],
@@ -108,6 +121,44 @@ def init_target(
 
 def onboard_target(target: Path, bootstrap_root: Path, intent: str = "", force: bool = False) -> dict:
     return init_target(target, bootstrap_root, force=force, intent=intent, onboard=True)
+
+
+def answer_question_target(
+    target: Path,
+    bootstrap_root: Path,
+    question_id: str,
+    value: str,
+    source: str = "user-confirmed bootstrap answer",
+) -> dict:
+    questions_path = target / ".ai" / "questions" / "blocking.json"
+    questions = read_json(questions_path, {})
+    match = None
+    for item in questions.get("blocking", []):
+        if item.get("id") == question_id:
+            match = item
+            break
+    if not match:
+        return {
+            "status": "error",
+            "error": "blocking question not found; run onboard/init first or inspect .ai/questions/blocking.json",
+            "question_id": question_id,
+        }
+
+    memory_path = target / ".ai" / "memory" / "project-memory.json"
+    memory_path.parent.mkdir(parents=True, exist_ok=True)
+    fact = add_manual(memory_path, match["memory_key"], value, source, 1.0)
+    previous_architecture = read_json(target / ".ai" / "discovery" / "architecture.json", {})
+    intent = str(previous_architecture.get("intent") or "")
+    refreshed = init_target(target, bootstrap_root, force=False, intent=intent, onboard=True)
+    return {
+        "status": "ok",
+        "question_id": question_id,
+        "memory_key": match["memory_key"],
+        "fact": fact,
+        "ready_for_implementation": refreshed["ready_for_implementation"],
+        "blocking_questions": refreshed["blocking_questions"],
+        "roadmap_state": refreshed["roadmap_state"],
+    }
 
 
 def run_baseline(target: Path, bootstrap_root: Path, reference: Optional[Path] = None) -> dict:
@@ -132,10 +183,12 @@ def verify_target(target: Path, bootstrap_root: Path) -> Tuple[int, dict]:
         ai / "policy.json", ai / "discovery" / "project-facts.json",
         ai / "discovery" / "packs.json", ai / "discovery" / "dependency-graph.json",
         ai / "discovery" / "architecture.json", ai / "standards" / "index.json",
-        ai / "research" / "agenda.json", ai / "baseline" / "inventory.json",
+        ai / "research" / "agenda.json", ai / "questions" / "blocking.json",
+        ai / "planning" / "roadmap.json", ai / "baseline" / "inventory.json",
         ai / "knowledge" / "index.json", ai / "memory" / "project-memory.json",
         target / "AGENTS.md", target / "docs" / "ARCHITECTURE.md",
-        target / "docs" / "DEVELOPMENT.md", target / "docs" / "specs" / "README.md",
+        target / "docs" / "DEVELOPMENT.md", target / "docs" / "ROADMAP.md",
+        target / "docs" / "specs" / "README.md",
     ]
     missing = [str(p.relative_to(target)) for p in required if not p.exists()]
     invalid = []
@@ -159,8 +212,22 @@ def verify_target(target: Path, bootstrap_root: Path) -> Tuple[int, dict]:
     unresolved = [item["id"] for item in research.get("items", []) if item.get("status") == "unresolved"]
     if unresolved:
         warnings.append("architecture research remains unresolved: " + ", ".join(unresolved))
+    questions = read_json(ai / "questions" / "blocking.json", {})
+    if questions.get("blocking_count", 0):
+        warnings.append(
+            "implementation readiness is blocked by {} question(s): {}".format(
+                questions.get("blocking_count"),
+                ", ".join(item.get("id", "unknown") for item in questions.get("blocking", [])),
+            )
+        )
 
-    result = {"ok": not missing and not invalid, "missing": missing, "invalid": invalid, "warnings": warnings}
+    result = {
+        "ok": not missing and not invalid,
+        "ready_for_implementation": not bool(questions.get("blocking_count", 0)),
+        "missing": missing,
+        "invalid": invalid,
+        "warnings": warnings,
+    }
     return (0 if result["ok"] else 1), result
 
 
@@ -178,12 +245,13 @@ def add_memory_target(target: Path, key: str, value: str, source: str, confidenc
 
 
 def render_manifest(context: dict) -> str:
-    facts = context["facts"]
     value = {
-        "schema_version": 3,
+        "schema_version": 4,
         "bootstrap_version": VERSION,
         "mode": context["architecture"]["mode"],
         "architecture_style": context["architecture"]["style"]["name"],
+        "ready_for_implementation": context["questions"]["ready_for_implementation"],
+        "blocking_questions": context["questions"]["blocking_count"],
         "selected_packs": context["packs"]["resolved_ids"],
         "artifacts": {
             "facts": ".ai/discovery/project-facts.json",
@@ -192,6 +260,8 @@ def render_manifest(context: dict) -> str:
             "architecture_model": ".ai/discovery/architecture.json",
             "standards": ".ai/standards/index.json",
             "research": ".ai/research/agenda.json",
+            "questions": ".ai/questions/blocking.json",
+            "roadmap": ".ai/planning/roadmap.json",
             "baseline": ".ai/baseline/inventory.json",
             "policy": ".ai/policy.json",
             "knowledge": ".ai/knowledge/index.json",
@@ -202,6 +272,7 @@ def render_manifest(context: dict) -> str:
             "verification": ".ai/VERIFICATION.md",
             "human_architecture": "docs/ARCHITECTURE.md",
             "human_development": "docs/DEVELOPMENT.md",
+            "human_roadmap": "docs/ROADMAP.md",
             "agent_instructions": "AGENTS.md",
         },
     }
@@ -211,6 +282,7 @@ def render_manifest(context: dict) -> str:
 def render_project_md(context: dict) -> str:
     facts = context["facts"]
     architecture = context["architecture"]
+    questions = context["questions"]
     langs = ", ".join(facts["languages"].keys()) or "unknown"
     frameworks = ", ".join(facts["frameworks"].keys()) or "none detected"
     versions = "\n".join(
@@ -225,6 +297,13 @@ Generated by Universal AI Development Bootstrap {version}.
 ## Intent
 
 - {intent}
+
+## Readiness
+
+- Ready for implementation: `{ready}`.
+- Blocking setup questions: `{blocking}`.
+- Human roadmap: `docs/ROADMAP.md`.
+- Machine questions: `.ai/questions/blocking.json`.
 
 ## Detected stack
 
@@ -241,6 +320,7 @@ Generated by Universal AI Development Bootstrap {version}.
 
 - Read `ARCHITECTURE.md`, `DEPENDENCIES.md`, `RULES.md`, `VERIFICATION.md`.
 - Read `.ai/discovery/architecture.json` for machine-readable component boundaries.
+- Read `.ai/questions/blocking.json` and resolve blockers before risky implementation.
 - Read `.ai/research/agenda.json` before relying on uncertain framework/version assumptions.
 - Read `.ai/policy.json` and project memory before non-trivial work.
 
@@ -248,10 +328,12 @@ Generated by Universal AI Development Bootstrap {version}.
 
 - Project-specific verified facts override generic bootstrap guidance.
 - Repository evidence overrides generic architecture examples.
-- Unresolved version-specific behavior must be researched or left unresolved, not guessed.
+- Unresolved material compatibility facts must be asked/researched, not guessed.
 """.format(
         version=VERSION,
         intent=intent,
+        ready=str(questions["ready_for_implementation"]).lower(),
+        blocking=questions["blocking_count"],
         langs=langs,
         frameworks=frameworks,
         types=", ".join(facts["project_types"]),
@@ -295,6 +377,7 @@ def render_architecture_md(context: dict) -> str:
 
 - Current human-facing architecture: `docs/ARCHITECTURE.md`.
 - Development conventions: `docs/DEVELOPMENT.md`.
+- Development roadmap and gates: `docs/ROADMAP.md`.
 - Product behavior: `docs/specs/`.
 - Change design: `.ai/changes/<change-id>/design.md`.
 """.format(
@@ -321,16 +404,22 @@ def render_commands_md(facts: dict) -> str:
 def render_rules_md(context: dict) -> str:
     facts = context["facts"]
     packs = context["packs"]
+    questions = context["questions"]
     lines = [
         "# Project Rules", "",
         "## Universal rules", "",
         "- Preserve existing behavior unless the active change explicitly alters it.",
         "- Match detected target runtime compatibility; do not silently introduce newer syntax or APIs.",
+        "- Discover material facts first; ask the user when a compatibility/architecture fact remains unresolved; never guess a blocker.",
+        "- Resolve `.ai/questions/blocking.json` before risky implementation when `ready_for_implementation=false`.",
         "- Never copy secrets into specs, prompts, logs, memory, baseline output, or generated AI context.",
         "- Product specs describe WHAT; architecture/change design describes HOW.",
         "- Keep core small; keep feature logic in explicit modules with narrow contracts.",
         "- Do not introduce microservices without a real operational/service boundary.",
         "- Use `.ai/policy.json` and `policy-check` before protected/destructive actions.",
+        "", "## Readiness", "",
+        "- Ready for implementation: `{}`.".format(str(questions["ready_for_implementation"]).lower()),
+        "- Blocking questions: `{}`.".format(questions["blocking_count"]),
         "", "## Capability-pack rules", "",
     ]
     for rule in packs.get("rules", []):
