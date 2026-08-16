@@ -1,0 +1,11 @@
+{
+  "id": "base/architecture",
+  "version": "1.1.0",
+  "kind": "base",
+  "extends": ["base/spec-first"],
+  "rules": [
+    "Keep technical design separate from product behavior specs.",
+    "Discover system boundaries, data ownership and public contracts before architectural changes."
+  ],
+  "knowledge_ids": ["spec-architecture-separation", "dependency-evidence", "baseline-evidence"]
+}
