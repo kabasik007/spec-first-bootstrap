@@ -1,21 +1,40 @@
 from __future__ import annotations
 
+from typing import Optional
 
-def build_agenda(facts: dict, architecture: dict, intent: str = "") -> dict:
+
+def _verified_value(memory: dict, keys) -> str:
+    facts = memory.get("facts", {}) if memory else {}
+    for key in keys:
+        item = facts.get(key)
+        if not item:
+            continue
+        value = item.get("value")
+        if value is not None and str(value).strip():
+            return str(value).strip()
+    return ""
+
+
+def build_agenda(facts: dict, architecture: dict, intent: str = "", memory: Optional[dict] = None) -> dict:
     items = []
     frameworks = list(facts.get("frameworks", {}).keys())
     versions = facts.get("versions", {})
+    memory = memory or {}
 
     for framework in frameworks:
         version_fact = versions.get(framework)
-        if version_fact:
-            version = version_fact.get("value")
+        version = version_fact.get("value") if version_fact else _verified_value(
+            memory,
+            ["framework.{}.version".format(framework), "versions.{}".format(framework)],
+        )
+        if version:
             items.append({
                 "id": "framework-{}-architecture".format(framework),
                 "priority": "high",
                 "question": "Confirm architecture, extension points and compatibility rules for {} {}.".format(framework, version),
                 "source_policy": "official-primary-only",
                 "status": "needed-if-changing-framework-boundaries",
+                "version_source": "repository-or-verified-memory",
             })
         else:
             items.append({

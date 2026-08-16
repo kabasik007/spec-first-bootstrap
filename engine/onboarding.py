@@ -4,7 +4,9 @@ import shutil
 from pathlib import Path
 
 from .architecture import render_human_architecture
+from .questions import render_blocking_questions
 from .research import render_research_summary
+from .roadmap import render_roadmap
 from .standards import render_development
 from .utils import write_json
 
@@ -42,6 +44,7 @@ def _managed_update(path: Path, generated: str) -> None:
 def _agent_block(context: dict) -> str:
     architecture = context["architecture"]
     facts = context["facts"]
+    questions = context["questions"]
     components = []
     for item in architecture.get("components", []):
         components.append("- `{}`: {}.".format(item.get("path"), item.get("role")))
@@ -54,20 +57,25 @@ def _agent_block(context: dict) -> str:
     if not compatibility:
         compatibility.append("- No explicit runtime version constraint detected; verify before using version-specific syntax/APIs.")
 
+    readiness = "ready" if questions.get("ready_for_implementation") else "blocked-awaiting-answers"
+
     return """# Agent Instructions
 
 <!-- universal-bootstrap:start -->
 ## Bootstrap contract
 
 - This repository uses Universal AI Development Bootstrap.
+- Read `docs/ROADMAP.md` before starting non-trivial implementation.
 - Read `docs/ARCHITECTURE.md` before non-trivial structural work.
 - Read `docs/DEVELOPMENT.md` before implementation.
 - Read the relevant `docs/specs/` contract before changing observable behavior.
+- Read `.ai/questions/blocking.json` before implementation; current readiness is `{readiness}`.
 - Read `.ai/RULES.md`, `.ai/policy.json`, and `.ai/memory/project-memory.json` before risky work.
 - Treat repository evidence as stronger than generic framework guidance.
 - Research official/version-matched primary documentation when a material framework fact is uncertain.
 - Do not ask the user to restate stack facts that can be discovered from the repository.
-- Ask only when unresolved product intent or a high-risk architecture choice cannot be safely inferred.
+- If material compatibility facts remain unresolved, ask all current blockers together with options and reasons before risky implementation.
+- After the user answers, store each answer as verified project memory and regenerate the roadmap/context.
 
 ## Architecture
 
@@ -86,6 +94,10 @@ def _agent_block(context: dict) -> str:
 
 {compatibility}
 
+## Blocking questions
+
+{blocking_questions}
+
 ## Retrieval rules
 
 - Write one rule/fact per bullet or line.
@@ -97,16 +109,20 @@ def _agent_block(context: dict) -> str:
 ## Change workflow
 
 - Inspect before planning.
+- Resolve material setup blockers before risky implementation.
+- Follow `docs/ROADMAP.md`; do not skip blocked phases silently.
 - Update/create a spec for non-trivial behavior changes.
 - Create technical design for architectural changes.
 - Implement the smallest coherent change.
 - Verify using project-native commands and capability-specific checks.
-- Update architecture/development docs when boundaries or conventions change.
+- Update architecture/development/roadmap docs when boundaries, conventions or readiness change.
 <!-- universal-bootstrap:end -->
 """.format(
+        readiness=readiness,
         style=architecture.get("style", {}).get("name"),
         components="\n".join(components),
         compatibility="\n".join(compatibility),
+        blocking_questions=render_blocking_questions(questions),
     )
 
 
@@ -130,11 +146,14 @@ def apply_onboarding(target: Path, bootstrap_root: Path, context: dict) -> dict:
     _managed_update(target / "AGENTS.md", _agent_block(context))
     _managed_update(docs / "ARCHITECTURE.md", render_human_architecture(context["architecture"], context["facts"]))
     _managed_update(docs / "DEVELOPMENT.md", render_development(context["standards"], context["facts"], context["architecture"]))
+    _managed_update(docs / "ROADMAP.md", render_roadmap(context["roadmap"], context["questions"]))
     _copy_spec_layer(target, bootstrap_root)
 
     write_json(ai / "discovery" / "architecture.json", context["architecture"])
     write_json(ai / "standards" / "index.json", context["standards"])
     write_json(ai / "research" / "agenda.json", context["research"])
+    write_json(ai / "questions" / "blocking.json", context["questions"])
+    write_json(ai / "planning" / "roadmap.json", context["roadmap"])
 
     research_readme = ai / "research" / "README.md"
     research_readme.parent.mkdir(parents=True, exist_ok=True)
@@ -148,7 +167,16 @@ def apply_onboarding(target: Path, bootstrap_root: Path, context: dict) -> dict:
     )
 
     return {
-        "human_docs": ["AGENTS.md", "docs/ARCHITECTURE.md", "docs/DEVELOPMENT.md", "docs/specs/"],
+        "human_docs": [
+            "AGENTS.md",
+            "docs/ARCHITECTURE.md",
+            "docs/DEVELOPMENT.md",
+            "docs/ROADMAP.md",
+            "docs/specs/",
+        ],
         "architecture_style": context["architecture"]["style"]["name"],
+        "ready_for_implementation": context["questions"]["ready_for_implementation"],
+        "blocking_questions": context["questions"]["blocking_count"],
+        "roadmap_phases": len(context["roadmap"].get("phases", [])),
         "research_items": len(context["research"].get("items", [])),
     }

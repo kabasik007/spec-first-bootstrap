@@ -34,6 +34,7 @@ class ContextIntelligenceTests(unittest.TestCase):
             loaded = {p["id"]: p for p in ctx["packs"]["loaded"]}
             self.assertFalse(loaded["languages/php"]["virtual"])
             self.assertIn("runtime-compatibility", ctx["knowledge"]["selected_ids"])
+            self.assertTrue(ctx["questions"]["ready_for_implementation"])
 
     def test_dependency_graph_composes_ecosystems(self):
         with tempfile.TemporaryDirectory() as td:
@@ -128,6 +129,8 @@ class ContextIntelligenceTests(unittest.TestCase):
                 ".ai/discovery/architecture.json",
                 ".ai/standards/index.json",
                 ".ai/research/agenda.json",
+                ".ai/questions/blocking.json",
+                ".ai/planning/roadmap.json",
                 ".ai/baseline/inventory.json",
                 ".ai/knowledge/index.json",
                 ".ai/memory/project-memory.json",
@@ -136,11 +139,13 @@ class ContextIntelligenceTests(unittest.TestCase):
                 "AGENTS.md",
                 "docs/ARCHITECTURE.md",
                 "docs/DEVELOPMENT.md",
+                "docs/ROADMAP.md",
             ]:
                 self.assertTrue((target / path).exists(), path)
             code, verification = verify_target(target, ROOT)
             self.assertEqual(code, 0)
             self.assertTrue(verification["ok"])
+            self.assertIn("ready_for_implementation", verification)
 
 
 if __name__ == "__main__":

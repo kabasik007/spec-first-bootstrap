@@ -30,11 +30,22 @@ jobs:
           test -f /tmp/bootstrap-target/AGENTS.md
           test -f /tmp/bootstrap-target/docs/ARCHITECTURE.md
           test -f /tmp/bootstrap-target/docs/DEVELOPMENT.md
+          test -f /tmp/bootstrap-target/docs/ROADMAP.md
           test -f /tmp/bootstrap-target/.ai/discovery/architecture.json
+          test -f /tmp/bootstrap-target/.ai/questions/blocking.json
+          test -f /tmp/bootstrap-target/.ai/planning/roadmap.json
+      - name: Blocking question answer smoke test
+        run: |
+          mkdir -p /tmp/bootstrap-php
+          printf '{"require":{"psr/log":"^1.0"}}\n' > /tmp/bootstrap-php/composer.json
+          python bootstrap.py onboard /tmp/bootstrap-php --intent "Add a module" > /tmp/bootstrap-php-before.json
+          python bootstrap.py answer /tmp/bootstrap-php runtime-php-version 5.6 --source "CI confirmed test value" > /tmp/bootstrap-php-answer.json
+          python bootstrap.py verify /tmp/bootstrap-php > /tmp/bootstrap-php-verify.json
       - name: CLI help
         run: |
           python bootstrap.py --version
           python bootstrap.py onboard --help
+          python bootstrap.py answer --help
           python bootstrap.py baseline --help
           python bootstrap.py policy-check --help
           python bootstrap.py memory-add --help

@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/kabasik007/spec-first-bootstrap/schemas/roadmap.schema.json",
+  "title": "Autonomous Development Roadmap",
+  "type": "object",
+  "required": ["schema_version", "title", "readiness", "principles", "phases", "definition_of_done"],
+  "properties": {
+    "schema_version": {"type": "integer", "minimum": 1},
+    "title": {"type": "string"},
+    "intent": {"type": "string"},
+    "architecture_style": {"type": ["string", "null"]},
+    "readiness": {
+      "type": "object",
+      "required": ["ready_for_implementation", "blocking_questions", "state"],
+      "properties": {
+        "ready_for_implementation": {"type": "boolean"},
+        "blocking_questions": {"type": "integer", "minimum": 0},
+        "state": {"type": "string"}
+      }
+    },
+    "principles": {"type": "array", "items": {"type": "string"}},
+    "phases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "objective", "status", "depends_on", "deliverables", "gates"],
+        "properties": {
+          "id": {"type": "string"},
+          "title": {"type": "string"},
+          "objective": {"type": "string"},
+          "status": {"type": "string"},
+          "depends_on": {"type": "array", "items": {"type": "string"}},
+          "deliverables": {"type": "array", "items": {"type": "string"}},
+          "gates": {"type": "array", "items": {"type": "string"}}
+        },
+        "additionalProperties": true
+      }
+    },
+    "definition_of_done": {"type": "array", "items": {"type": "string"}}
+  },
+  "additionalProperties": true
+}
