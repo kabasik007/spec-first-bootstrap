@@ -5,6 +5,7 @@ from pathlib import Path
 
 from engine.baseline import compare
 from engine.harness import (
+    VERSION,
     add_memory_target,
     build_context,
     check_policy_target,
@@ -51,6 +52,23 @@ class ContextIntelligenceTests(unittest.TestCase):
             self.assertIn("npm:react", names)
             self.assertIn("npm:vite", names)
 
+    def test_nested_manifests_create_workspace_components(self):
+        with tempfile.TemporaryDirectory() as td:
+            target = Path(td)
+            auth = target / "services" / "auth"
+            orders = target / "services" / "orders"
+            auth.mkdir(parents=True)
+            orders.mkdir(parents=True)
+            (auth / "package.json").write_text(json.dumps({"dependencies": {"express": "^5"}}), encoding="utf-8")
+            (orders / "composer.json").write_text(json.dumps({"require": {"php": "^8.2", "psr/log": "^3"}}), encoding="utf-8")
+            ctx = build_context(target, ROOT)
+            paths = {component["path"] for component in ctx["dependencies"]["components"]}
+            self.assertEqual(paths, {"services/auth", "services/orders"})
+            architecture_paths = {component["path"] for component in ctx["architecture"]["components"]}
+            self.assertIn("services/auth/", architecture_paths)
+            self.assertIn("services/orders/", architecture_paths)
+            self.assertEqual(ctx["architecture"]["microservices"]["decision"], "preserve-existing")
+
     def test_opencart_policy_requires_confirmation_and_denies_secret_read(self):
         with tempfile.TemporaryDirectory() as td:
             target = Path(td)
@@ -96,22 +114,28 @@ class ContextIntelligenceTests(unittest.TestCase):
                 second["facts"]["runtime.production_node"]["observed_at"],
             )
 
-    def test_init_generates_v11_context_and_verify_passes(self):
+    def test_init_generates_context_and_verify_passes(self):
         with tempfile.TemporaryDirectory() as td:
             target = Path(td)
             (target / "requirements.txt").write_text("fastapi==0.116.0\nuvicorn>=0.30\n")
             (target / "main.py").write_text("from fastapi import FastAPI\napp = FastAPI()\n")
             result = init_target(target, ROOT)
-            self.assertEqual(result["bootstrap_version"], "1.1.0")
+            self.assertEqual(result["bootstrap_version"], VERSION)
             for path in [
                 ".ai/policy.json",
                 ".ai/discovery/dependency-graph.json",
                 ".ai/discovery/packs.json",
+                ".ai/discovery/architecture.json",
+                ".ai/standards/index.json",
+                ".ai/research/agenda.json",
                 ".ai/baseline/inventory.json",
                 ".ai/knowledge/index.json",
                 ".ai/memory/project-memory.json",
                 ".ai/DEPENDENCIES.md",
                 ".ai/VERIFICATION.md",
+                "AGENTS.md",
+                "docs/ARCHITECTURE.md",
+                "docs/DEVELOPMENT.md",
             ]:
                 self.assertTrue((target / path).exists(), path)
             code, verification = verify_target(target, ROOT)

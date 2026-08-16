@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Universal Bootstrap Research Agenda",
+  "type": "object",
+  "required": ["schema_version", "web_policy", "items"],
+  "properties": {
+    "schema_version": {"type": "integer"},
+    "web_policy": {"type": "object"},
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "priority", "question", "source_policy", "status"],
+        "properties": {
+          "id": {"type": "string"},
+          "priority": {"enum": ["low", "medium", "high"]},
+          "question": {"type": "string"},
+          "source_policy": {"type": "string"},
+          "status": {"type": "string"}
+        }
+      }
+    }
+  }
+}
