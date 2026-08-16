@@ -1,8 +1,15 @@
 # Context Intelligence Layer
 
-Universal Bootstrap v1.1 adds machine-readable context around the original spec-first workflow.
+Universal Bootstrap v1.1 introduced the machine-readable context layer described below.
 
-The layer is intentionally stack-agnostic:
+**v1.2 keeps this layer intact and adds autonomous architecture synthesis, standards discovery, research planning, `AGENTS.md`, and human-facing architecture/development docs on top of it.**
+
+For the current default workflow, read:
+
+- `AUTONOMOUS_BOOTSTRAP.md`
+- `docs/architecture.md`
+
+The Context Intelligence layer itself remains stack-agnostic:
 
 ```text
 repository evidence
@@ -11,7 +18,7 @@ discovery
       ↓
 capability pack resolution
       ↓
-dependency graph + baseline
+dependency/workspace graph + baseline
       ↓
 policy + knowledge + memory
       ↓
@@ -44,7 +51,7 @@ This writes `.ai/baseline/diff.json` and reports:
 
 The engine does not download a reference automatically. This keeps ordinary bootstrap work local-first and avoids silently comparing against the wrong framework generation.
 
-## Dependency graph
+## Dependency/workspace graph
 
 The graph is generated from local manifests and written to:
 
@@ -53,7 +60,17 @@ The graph is generated from local manifests and written to:
 .ai/DEPENDENCIES.md
 ```
 
-v1.1 supports direct dependency evidence from:
+v1.2 scans supported manifests across the repository, not only at the root, so paths such as:
+
+```text
+services/auth/package.json
+services/orders/composer.json
+packages/shared/pyproject.toml
+```
+
+can become explicit workspace component evidence.
+
+Supported direct dependency evidence includes:
 
 - Composer
 - npm/package.json
@@ -63,28 +80,29 @@ v1.1 supports direct dependency evidence from:
 - Go modules
 - Maven
 - NuGet `.csproj`
+- Gradle manifests as build/component boundaries
 
-It records ecosystem, package, constraint, scope and source manifest.
+The graph records ecosystem, package, constraint, scope, source manifest and nested manifest-defined components.
 
-This is a dependency-manifest graph, not a complete runtime call graph. Source/import analysis can be layered on later.
+This is still dependency/build evidence, not a fake complete runtime call graph. Source/import/call and data-flow analysis can be layered on later.
 
 ## Executable capability packs
 
-v1.0 selected pack IDs. v1.1 resolves them.
+v1.0 selected pack IDs. v1.1 made them executable.
 
-A pack can now contribute:
+A pack can contribute:
 
 - `extends`
 - compatibility rules
-- project rules
+- project/architecture rules
 - protected paths
 - verification requirements
 - knowledge IDs
 - policy fragments
 
-Resolution is recursive and deterministic. Detailed manifests are loaded from `packs/**.json`; catalog-only packs remain usable as virtual/fallback packs and are surfaced as warnings by `verify`.
+Resolution is recursive and deterministic. Detailed manifests are loaded from `packs/**.json`; catalog-only packs remain usable as fallback capabilities and are surfaced as warnings by `verify`.
 
-This lets the system be universal without a giant stack-specific switch.
+This keeps the system universal without a giant stack-specific switch.
 
 ## Knowledge catalog
 
@@ -157,7 +175,7 @@ Exit semantics:
 
 The policy file is not itself a sandbox. A coding agent, IDE integration, CI wrapper or future skill must call `policy-check` or implement equivalent enforcement before guarded actions.
 
-## Generated v1.1 structure
+## Generated machine context
 
 ```text
 .ai/
@@ -174,14 +192,15 @@ The policy file is not itself a sandbox. A coding agent, IDE integration, CI wra
 │   ├── project-facts.json
 │   ├── packs.json
 │   ├── dependency-graph.json
+│   ├── architecture.json
 │   └── risks.json
-├── baseline/
-│   ├── inventory.json
-│   └── diff.json
-├── knowledge/
+├── standards/
 │   └── index.json
+├── research/
+│   └── agenda.json
+├── baseline/
+├── knowledge/
 ├── memory/
-│   └── project-memory.json
 ├── decisions/
 ├── changes/
 └── verification/
@@ -189,13 +208,14 @@ The policy file is not itself a sandbox. A coding agent, IDE integration, CI wra
 
 ## Trust order
 
-When facts conflict, use this order:
+When facts conflict:
 
-1. explicitly verified project fact with provenance
-2. exact project/version-specific repository evidence
-3. baseline/reference evidence confirmed to match the target
-4. detected fact with high confidence
-5. capability-pack guidance
-6. generic knowledge
+1. explicit current user instruction
+2. verified project fact with provenance
+3. exact project/version-specific repository evidence
+4. baseline/reference evidence confirmed to match the target
+5. high-confidence detection
+6. capability-pack guidance
+7. generic knowledge
 
 Never let generic advice override known target compatibility.
