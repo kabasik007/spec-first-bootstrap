@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Optional
+
 
 def _verified_value(memory: dict, keys) -> str:
     facts = memory.get("facts", {}) if memory else {}
@@ -13,7 +15,7 @@ def _verified_value(memory: dict, keys) -> str:
     return ""
 
 
-def build_agenda(facts: dict, architecture: dict, intent: str = "", memory: dict | None = None) -> dict:
+def build_agenda(facts: dict, architecture: dict, intent: str = "", memory: Optional[dict] = None) -> dict:
     items = []
     frameworks = list(facts.get("frameworks", {}).keys())
     versions = facts.get("versions", {})
