@@ -7,145 +7,201 @@ from typing import Dict, List
 from .utils import read_json, read_text, rel, walk_files
 
 
+MANIFEST_NAMES = {
+    "composer.json", "package.json", "requirements.txt", "pyproject.toml",
+    "Cargo.toml", "go.mod", "pom.xml", "build.gradle", "build.gradle.kts",
+}
+
+
+def _manifest_files(root: Path) -> List[Path]:
+    files = walk_files(root)
+    manifests = [p for p in files if p.name in MANIFEST_NAMES or p.suffix.lower() == ".csproj"]
+    return sorted(manifests, key=lambda p: rel(root, p))
+
+
+def _component_id(root: Path, manifest: Path) -> str:
+    parent = manifest.parent
+    if parent == root:
+        return "project:root"
+    return "component:" + rel(root, parent)
+
+
 def dependency_graph(root: Path) -> dict:
     nodes: Dict[str, dict] = {
-        "project:root": {"id": "project:root", "kind": "project", "name": root.name}
+        "project:root": {"id": "project:root", "kind": "project", "name": root.name, "path": "."}
     }
     edges: List[dict] = []
     manifests: List[str] = []
+    components: Dict[str, dict] = {}
 
-    def add(ecosystem: str, name: str, constraint: str = "", scope: str = "runtime", source: str = ""):
+    def ensure_component(manifest: Path) -> str:
+        component_id = _component_id(root, manifest)
+        if component_id == "project:root":
+            return component_id
+        component_path = rel(root, manifest.parent)
+        components.setdefault(component_id, {
+            "id": component_id,
+            "kind": "component",
+            "name": manifest.parent.name,
+            "path": component_path,
+            "manifests": [],
+        })
+        source = rel(root, manifest)
+        if source not in components[component_id]["manifests"]:
+            components[component_id]["manifests"].append(source)
+        nodes.setdefault(component_id, components[component_id])
+        edge = {"from": "project:root", "to": component_id, "scope": "contains", "source": source}
+        if edge not in edges:
+            edges.append(edge)
+        return component_id
+
+    def add(component_id: str, ecosystem: str, name: str, constraint: str = "", scope: str = "runtime", source: str = ""):
         if not name:
             return
-        node_id = f"{ecosystem}:{name}"
+        node_id = "{}:{}".format(ecosystem, name)
         nodes.setdefault(node_id, {
-            "id": node_id, "kind": "dependency", "ecosystem": ecosystem,
-            "name": name, "constraint": constraint or "", "sources": [],
+            "id": node_id,
+            "kind": "dependency",
+            "ecosystem": ecosystem,
+            "name": name,
+            "constraint": constraint or "",
+            "sources": [],
         })
         if source and source not in nodes[node_id]["sources"]:
             nodes[node_id]["sources"].append(source)
-        edges.append({"from": "project:root", "to": node_id, "scope": scope, "source": source})
+        edges.append({"from": component_id, "to": node_id, "scope": scope, "source": source})
 
-    composer = root / "composer.json"
-    if composer.exists():
-        manifests.append("composer.json")
-        obj = read_json(composer, {})
-        for scope, key in [("runtime", "require"), ("development", "require-dev")]:
-            for name, version in (obj.get(key) or {}).items():
-                if name == "php" or name.startswith("ext-"):
-                    continue
-                add("composer", name, str(version), scope, "composer.json")
-
-    package = root / "package.json"
-    if package.exists():
-        manifests.append("package.json")
-        obj = read_json(package, {})
-        for scope, key in [
-            ("runtime", "dependencies"), ("development", "devDependencies"),
-            ("peer", "peerDependencies"), ("optional", "optionalDependencies"),
-        ]:
-            for name, version in (obj.get(key) or {}).items():
-                add("npm", name, str(version), scope, "package.json")
-
-    requirements = root / "requirements.txt"
-    if requirements.exists():
-        manifests.append("requirements.txt")
-        for line in read_text(requirements).splitlines():
-            line = line.strip()
-            if not line or line.startswith("#") or line.startswith("-"):
-                continue
-            m = re.match(r"([A-Za-z0-9_.-]+)\s*([<>=!~].*)?$", line)
-            if m:
-                add("pypi", m.group(1), (m.group(2) or "").strip(), "runtime", "requirements.txt")
-
-    pyproject = root / "pyproject.toml"
-    if pyproject.exists():
-        manifests.append("pyproject.toml")
-        data = read_text(pyproject)
-        for block in re.findall(r"dependencies\s*=\s*\[(.*?)\]", data, flags=re.S):
-            for item in re.findall(r'["\']([^"\']+)["\']', block):
-                m = re.match(r"([A-Za-z0-9_.-]+)\s*(.*)", item)
-                if m:
-                    add("pypi", m.group(1), m.group(2).strip(), "runtime", "pyproject.toml")
-
-    cargo = root / "Cargo.toml"
-    if cargo.exists():
-        manifests.append("Cargo.toml")
-        section = None
-        for line in read_text(cargo).splitlines():
-            stripped = line.strip()
-            if stripped.startswith("[") and stripped.endswith("]"):
-                section = stripped.strip("[]")
-                continue
-            if section in {"dependencies", "dev-dependencies", "build-dependencies"}:
-                m = re.match(r"([A-Za-z0-9_-]+)\s*=\s*(.+)", stripped)
-                if m:
-                    constraint = m.group(2).strip().strip('"')
-                    scope = "development" if section == "dev-dependencies" else "runtime"
-                    add("cargo", m.group(1), constraint, scope, "Cargo.toml")
-
-    go = root / "go.mod"
-    if go.exists():
-        manifests.append("go.mod")
-        data = read_text(go)
-        for name, version in re.findall(r"^\s*([A-Za-z0-9_./-]+)\s+(v[0-9][^\s]*)", data, flags=re.M):
-            add("go", name, version, "runtime", "go.mod")
-
-    pom = root / "pom.xml"
-    if pom.exists():
-        manifests.append("pom.xml")
-        data = read_text(pom)
-        for block in re.findall(r"<dependency>(.*?)</dependency>", data, flags=re.S):
-            group = _xml(block, "groupId")
-            artifact = _xml(block, "artifactId")
-            version = _xml(block, "version")
-            scope = _xml(block, "scope") or "runtime"
-            if artifact:
-                add("maven", f"{group}:{artifact}" if group else artifact, version, scope, "pom.xml")
-
-    for csproj in root.glob("**/*.csproj"):
-        if any(part in {"vendor", "node_modules", ".git", ".ai"} for part in csproj.parts):
-            continue
-        source = rel(root, csproj)
+    for manifest in _manifest_files(root):
+        source = rel(root, manifest)
         manifests.append(source)
-        data = read_text(csproj)
-        for name, version in re.findall(r'<PackageReference\s+Include="([^"]+)"(?:\s+Version="([^"]*)")?', data):
-            add("nuget", name, version, "runtime", source)
+        component_id = ensure_component(manifest)
+        name = manifest.name
 
+        if name == "composer.json":
+            obj = read_json(manifest, {})
+            for scope, key in [("runtime", "require"), ("development", "require-dev")]:
+                for package, version in (obj.get(key) or {}).items():
+                    if package == "php" or package.startswith("ext-"):
+                        continue
+                    add(component_id, "composer", package, str(version), scope, source)
+            continue
+
+        if name == "package.json":
+            obj = read_json(manifest, {})
+            for scope, key in [
+                ("runtime", "dependencies"), ("development", "devDependencies"),
+                ("peer", "peerDependencies"), ("optional", "optionalDependencies"),
+            ]:
+                for package, version in (obj.get(key) or {}).items():
+                    add(component_id, "npm", package, str(version), scope, source)
+            continue
+
+        if name == "requirements.txt":
+            for line in read_text(manifest).splitlines():
+                line = line.strip()
+                if not line or line.startswith("#") or line.startswith("-"):
+                    continue
+                match = re.match(r"([A-Za-z0-9_.-]+)\s*([<>=!~].*)?$", line)
+                if match:
+                    add(component_id, "pypi", match.group(1), (match.group(2) or "").strip(), "runtime", source)
+            continue
+
+        if name == "pyproject.toml":
+            data = read_text(manifest)
+            for block in re.findall(r"dependencies\s*=\s*\[(.*?)\]", data, flags=re.S):
+                for item in re.findall(r'["\']([^"\']+)["\']', block):
+                    match = re.match(r"([A-Za-z0-9_.-]+)\s*(.*)", item)
+                    if match:
+                        add(component_id, "pypi", match.group(1), match.group(2).strip(), "runtime", source)
+            continue
+
+        if name == "Cargo.toml":
+            section = None
+            for line in read_text(manifest).splitlines():
+                stripped = line.strip()
+                if stripped.startswith("[") and stripped.endswith("]"):
+                    section = stripped.strip("[]")
+                    continue
+                if section in {"dependencies", "dev-dependencies", "build-dependencies"}:
+                    match = re.match(r"([A-Za-z0-9_-]+)\s*=\s*(.+)", stripped)
+                    if match:
+                        constraint = match.group(2).strip().strip('"')
+                        scope = "development" if section == "dev-dependencies" else "runtime"
+                        add(component_id, "cargo", match.group(1), constraint, scope, source)
+            continue
+
+        if name == "go.mod":
+            data = read_text(manifest)
+            for package, version in re.findall(r"^\s*([A-Za-z0-9_./-]+)\s+(v[0-9][^\s]*)", data, flags=re.M):
+                add(component_id, "go", package, version, "runtime", source)
+            continue
+
+        if name == "pom.xml":
+            data = read_text(manifest)
+            for block in re.findall(r"<dependency>(.*?)</dependency>", data, flags=re.S):
+                group = _xml(block, "groupId")
+                artifact = _xml(block, "artifactId")
+                version = _xml(block, "version")
+                scope = _xml(block, "scope") or "runtime"
+                if artifact:
+                    add(component_id, "maven", "{}:{}".format(group, artifact) if group else artifact, version, scope, source)
+            continue
+
+        if manifest.suffix.lower() == ".csproj":
+            data = read_text(manifest)
+            for package, version in re.findall(r'<PackageReference\s+Include="([^"]+)"(?:\s+Version="([^"]*)")?', data):
+                add(component_id, "nuget", package, version, "runtime", source)
+            continue
+
+        # Gradle is recognized as a component/build boundary even though this lightweight
+        # parser intentionally does not guess dependency expressions from arbitrary DSL code.
+
+    dependency_nodes = [node for node in nodes.values() if node.get("kind") == "dependency"]
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "manifests": sorted(set(manifests)),
-        "nodes": sorted(nodes.values(), key=lambda x: x["id"]),
+        "components": sorted(components.values(), key=lambda item: item["id"]),
+        "nodes": sorted(nodes.values(), key=lambda item: item["id"]),
         "edges": edges,
         "summary": {
-            "dependency_count": len(nodes) - 1,
+            "dependency_count": len(dependency_nodes),
             "manifest_count": len(set(manifests)),
-            "ecosystems": sorted({n.get("ecosystem") for n in nodes.values() if n.get("ecosystem")}),
+            "component_count": len(components),
+            "ecosystems": sorted({node.get("ecosystem") for node in dependency_nodes if node.get("ecosystem")}),
         },
     }
 
 
 def _xml(block: str, tag: str) -> str:
-    m = re.search(fr"<{tag}>(.*?)</{tag}>", block, flags=re.S)
-    return m.group(1).strip() if m else ""
+    match = re.search(r"<{}>(.*?)</{}>".format(tag, tag), block, flags=re.S)
+    return match.group(1).strip() if match else ""
 
 
 def render_dependency_md(graph: dict) -> str:
     lines = [
         "# Dependency Graph", "",
         "Generated from local dependency manifests. It is evidence, not a full runtime call graph.", "",
-        f"- Manifests: {graph['summary']['manifest_count']}",
-        f"- Dependencies: {graph['summary']['dependency_count']}",
-        f"- Ecosystems: {', '.join(graph['summary']['ecosystems']) or 'none detected'}", "",
-        "## Direct dependencies", "",
+        "- Manifests: {}".format(graph["summary"]["manifest_count"]),
+        "- Workspace components: {}".format(graph["summary"].get("component_count", 0)),
+        "- Dependencies: {}".format(graph["summary"]["dependency_count"]),
+        "- Ecosystems: {}".format(", ".join(graph["summary"]["ecosystems"]) or "none detected"), "",
+        "## Workspace components", "",
     ]
+    components = graph.get("components", [])
+    if components:
+        for component in components:
+            lines.append("- `{}` — manifests: {}".format(component["path"], ", ".join(component.get("manifests", []))))
+    else:
+        lines.append("- No nested manifest-defined component detected.")
+
+    lines += ["", "## Direct dependencies", ""]
     count = 0
     for node in graph["nodes"]:
         if node["kind"] != "dependency":
             continue
         count += 1
-        constraint = f" `{node.get('constraint')}`" if node.get("constraint") else ""
-        lines.append(f"- **{node.get('ecosystem')}** `{node['name']}`{constraint}")
+        constraint = " `{}`".format(node.get("constraint")) if node.get("constraint") else ""
+        lines.append("- **{}** `{}`{}".format(node.get("ecosystem"), node["name"], constraint))
     if not count:
         lines.append("- No supported dependency manifest entries detected.")
     return "\n".join(lines) + "\n"
