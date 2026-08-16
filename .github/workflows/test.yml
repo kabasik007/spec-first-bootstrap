@@ -16,9 +16,15 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Compile
-        run: python -m py_compile bootstrap.py
-      - name: Test
+      - name: Compile engine
+        run: python -m compileall -q bootstrap.py engine
+      - name: Unit and integration tests
         run: python -m unittest discover -s tests -v
       - name: Self-detect
-        run: python bootstrap.py detect .
+        run: python bootstrap.py detect . > /tmp/bootstrap-detect.json
+      - name: CLI help
+        run: |
+          python bootstrap.py --version
+          python bootstrap.py baseline --help
+          python bootstrap.py policy-check --help
+          python bootstrap.py memory-add --help
